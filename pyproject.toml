@@ -1,6 +1,6 @@
 [project]
 name = "netlogger-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "MCP server for net logging: live and past nets and check-ins, rate-limited to NetLogger's guidelines"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
@@ -12,7 +12,7 @@ dependencies = [
 ]
 keywords = [
     "amateur-radio", "ham-radio", "netlogger", "net-control", "check-ins",
-    "mcp", "model-context-protocol", "omiss",
+    "mcp", "model-context-protocol",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

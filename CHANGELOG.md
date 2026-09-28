@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 (2026-09-28)
+
+- README rewritten in the qso-graph layout, about NetLogger only: tools, callsign, Good Neighbour
+  Policy, privacy, client setup and example questions.
+- Tool descriptions, docstrings and keywords no longer name other projects.
+
 ## 0.1.0 (2026-09-28)
 
 - Tools for every documented NetLogger API 1.3 call: active nets, live check-ins with the pointer,
@@ -10,7 +16,7 @@
 - Every request names the station using it (callsign in the User-Agent); no anonymous mode. The MCP
   asks once on first use and saves it (`netlogger_set_callsign`); the library requires it.
 - Apps built on the library name themselves with ADIF's PROGRAMID and PROGRAMVERSION, which lead
-  the User-Agent (`OM-Logger/0.3 netlogger-mcp/0.1.0 (KI7MT; +…)`).
+  the User-Agent (`MyLogger/1.0 netlogger-mcp/0.1.0 (KI7MT; +…)`).
 - The call budget is shared by every copy for the user account (a locked state file), so two AI apps
   can't double the calls. It never fails open, and a copy that fell back rejoins once the file works.
 - Street, ZIP and IP address never returned.

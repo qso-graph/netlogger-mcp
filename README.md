@@ -1,61 +1,9 @@
+<!-- mcp-name: io.github.qso-graph/netlogger-mcp -->
 # netlogger-mcp
 
-MCP server and Python library for amateur-radio net logging: which nets are on the air, who has
-checked in, who's up now, and what past nets logged.
+MCP server for [NetLogger](https://www.netlogger.org/): nets on the air now, live check-in lists and who's up, and past nets and their check-ins, through any MCP-compatible AI assistant.
 
-- **Read-only.** It never writes to a net.
-- **One contract, more than one source.** Every answer uses the same net and check-in records
-  ([`schema/contract.schema.json`](src/netlogger_mcp/schema/contract.schema.json)), whatever logging
-  system is behind them. The first source is [NetLogger](https://www.netlogger.org)'s public XML Data
-  Service (API 1.3). The next is the OM-Logger being built for OMISS.
-- **A good neighbour.** NetLogger is a donation-funded service. This server never exceeds
-  NetLogger's published call limits, caches every answer, and backs off when told to.
-- **Private details stay out.** Street addresses, ZIP codes and IP addresses in NetLogger's data
-  have no place in the contract, so they never reach an AI, a program or a user.
-
-Status: 0.1.0, first release.
-
-## Tools
-
-| Tool | NetLogger call | Returns |
-|---|---|---|
-| `netlogger_active_nets` | `GetActiveNets` | nets on the air: server, name, frequency, band, mode, net control, logger, opened, monitoring count |
-| `netlogger_checkins` | `GetCheckins` | a live net's check-ins, the count, and the **pointer** (the station up now) |
-| `netlogger_past_nets` | `GetPastNets` | closed nets over the last N days, with the net IDs past check-ins need |
-| `netlogger_past_checkins` | `GetPastNetCheckins` | a closed net's check-ins |
-| `get_version_info` | none | server version, NetLogger API version, contract version |
-
-These are all the calls NetLogger's API 1.3 documents. `GetPointer` is deprecated; the pointer comes
-with `GetCheckins`, so it's never called.
-
-## Call limits
-
-| Call | NetLogger's limit | Answers reused for |
-|---|---|---|
-| `GetActiveNets` | 1 a minute | 60 s; the name filter is applied locally, so any number of filters cost one call |
-| `GetCheckins` | 3 a minute | 20 s per net |
-| `GetPastNets` | 1 a minute | 60 s per query |
-| `GetPastNetCheckins` | 10 a minute | an hour (a closed net's list doesn't change) |
-
-A limit is checked before a request is sent, never after. Over the limit, the answer comes from
-cache with its age (`age_seconds`, `stale`), or the result says when to try again. A
-`429 Too Many Requests` on any call stops **all** calls to NetLogger for at least a minute, longer
-if NetLogger's `Retry-After` asks. NetLogger's anti-flooding is aimed at the client, and every call
-reaches the same server. Past nets older than 7 days need a name filter (NetLogger's rule).
-
-**One budget per user account.** Every request carries your callsign, so to NetLogger all your
-copies are one station: Claude Desktop and Claude Code each running the server, a script using the
-library, and so on. They share one budget through a small state file (`limits.json`, beside the
-settings file), updated under a lock the operating system enforces between processes. Another
-account on the same computer has its own folder, and its own callsign. The rules:
-- **A 429 seen by any copy stops them all.**
-- **It never fails open.** If the file is unreadable, it assumes the whole budget was spent and
-  waits a full minute. If the file can't be used at all, that copy keeps to the limits on its own,
-  starting with a minute's pause, and logs why.
-- **One glitch doesn't strand a copy.** A copy on its own tries the file again after a minute. Once
-  the file works, it rejoins the shared budget and carries back the calls it made on its own.
-- **Clock changes don't help.** If the clock goes back, recorded calls count as "now", so they stay
-  in the window longer, not shorter.
+Data from NetLogger's public XML Data Service (API 1.3). Part of the [qso-graph](https://qso-graph.io/) project. **No API key needed.** Your callsign is asked for once (see below).
 
 ## Install
 
@@ -63,68 +11,188 @@ account on the same computer has its own folder, and its own callsign. The rules
 pip install netlogger-mcp
 ```
 
-Claude Code / Claude Desktop:
+## Tools
 
-```json
-"netlogger": { "command": "netlogger-mcp" }
-```
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `netlogger_active_nets` | Nets on the air now: frequency, band, mode, net control, logger, monitoring count | name_like |
+| `netlogger_checkins` | A live net's check-in list, plus the pointer (the station being worked now) | server_name, net_name |
+| `netlogger_past_nets` | Closed nets over the last N days, with the net IDs past check-ins need | interval_days, name_like |
+| `netlogger_past_checkins` | A closed net's check-in list | server_name, net_name, net_id |
+| `netlogger_set_callsign` | Save your callsign (asked once, on first use) | callsign |
+| `get_version_info` | Service version + upstream spec version (fleet identity attestation) | — |
 
-No API key or password is needed. **Your callsign is.**
+## What is NetLogger?
 
-## Your callsign
+NetLogger is the logging program many amateur-radio nets use: net control or a logger keeps the check-in list, and anyone can follow the net live. Its server publishes active nets, check-in lists and past nets through a public API.
 
-Every request tells NetLogger which station is asking, in the User-Agent:
+## Your Callsign
+
+Every request tells NetLogger which station is asking, so it can tell one user from another:
 
 ```
 netlogger-mcp/0.1.0 (KI7MT; +https://github.com/qso-graph/netlogger-mcp)
 ```
 
-That way, NetLogger can tell users apart. Without it, every install would look like one client, and
-one misbehaving install could get everyone blocked. There is no anonymous mode.
+On first use the assistant asks for your callsign and saves it. You're asked once. To set it yourself, use `NETLOGGER_MCP_CALLSIGN=KI7MT`.
 
-- **Nothing to configure.** On first use, the server says it needs your callsign, the AI asks you,
-  and it's saved (`netlogger_set_callsign`). You're asked once.
-- **Saved** in a small settings file: `~/.config/netlogger-mcp/settings.json` on Linux,
-  `~/Library/Application Support/netlogger-mcp/` on macOS, `%APPDATA%\netlogger-mcp\` on Windows.
-  A callsign is public, not a password.
-- **Or set it** with `NETLOGGER_MCP_CALLSIGN=KI7MT`, which overrides the file.
-- Changing the callsign never resets the call limits.
+It's saved in `settings.json`, in `~/.config/netlogger-mcp/` (Linux), `~/Library/Application Support/netlogger-mcp/` (macOS) or `%APPDATA%\netlogger-mcp\` (Windows).
 
-For testing without the network, set `NETLOGGER_MCP_MOCK=1` to answer from bundled synthetic samples.
+## Good Neighbour Policy
 
-## As a library
+NetLogger is a donation-funded service on one server, and it limits how often each call may be made. We keep to those limits:
 
-Programs that don't need an AI use the same code directly, with the same limits, cache and contract.
-A library can't ask anyone anything, so it requires the callsign: the program passes in the signed-in
-user's callsign, or the club's for a shared server.
+| Measure | Detail |
+|---------|--------|
+| **NetLogger's call limits** | GetActiveNets 1/min, GetCheckins 3/min, GetPastNets 1/min, GetPastNetCheckins 10/min. Checked before a request is sent, never after. |
+| **One budget per user** | Every copy you run (Claude Desktop, Claude Code, a script) shares one budget, through a locked file beside `settings.json`. |
+| **Response caching** | Active nets 60 s, check-ins 20 s, past nets 60 s, past check-ins 1 hour. Filtering by name costs no extra calls. |
+| **Stale answers over errors** | When a limit is reached, the last answer comes back with its age rather than a new request. |
+| **429 back-off** | A "too many requests" on any call stops all calls for at least a minute, longer if NetLogger asks. |
+| **Past-net windows** | More than 7 days of past nets needs a name filter, NetLogger's rule to protect its server. |
+| **Request timeout** | 15-second timeout. |
+| **User-Agent header** | Every request names this project and your callsign, so NetLogger's operators can see who is asking. |
+
+## Privacy
+
+NetLogger's check-in data includes street addresses and ZIP codes, and past nets include the IP address of whoever opened them. **None of these are ever returned.**
+
+## Quick Start
+
+### Configure your MCP client
+
+netlogger-mcp works with any MCP-compatible client. Add the server config and restart. The tools appear automatically.
+
+#### Claude Desktop
+
+Add to `claude_desktop_config.json` (`~/Library/Application Support/Claude/` on macOS, `%APPDATA%\Claude\` on Windows):
+
+```json
+{
+  "mcpServers": {
+    "netlogger": {
+      "command": "netlogger-mcp"
+    }
+  }
+}
+```
+
+#### Claude Code
+
+Add to `.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "netlogger": {
+      "command": "netlogger-mcp"
+    }
+  }
+}
+```
+
+#### ChatGPT Desktop
+
+```json
+{
+  "mcpServers": {
+    "netlogger": {
+      "command": "netlogger-mcp"
+    }
+  }
+}
+```
+
+#### Cursor
+
+Add to `.cursor/mcp.json` (project-level) or `~/.cursor/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "netlogger": {
+      "command": "netlogger-mcp"
+    }
+  }
+}
+```
+
+#### VS Code / GitHub Copilot
+
+Add to `.vscode/mcp.json` in your workspace:
+
+```json
+{
+  "servers": {
+    "netlogger": {
+      "command": "netlogger-mcp"
+    }
+  }
+}
+```
+
+#### Gemini CLI
+
+Add to `~/.gemini/settings.json` (global) or `.gemini/settings.json` (project):
+
+```json
+{
+  "mcpServers": {
+    "netlogger": {
+      "command": "netlogger-mcp"
+    }
+  }
+}
+```
+
+### Ask questions
+
+> "What nets are on the air right now?"
+
+> "Are any 80m nets running?"
+
+> "Who's checked into the county ARES net, and who's up now?"
+
+> "Which nets ran in the last three days?"
+
+> "Show me the check-ins from last night's net."
+
+## As a Python Library
+
+The same code works without an AI, with the same limits and cache. A library can't ask for your callsign, so you pass it in:
 
 ```python
 from netlogger_mcp.netlogger import NetLoggerSource
 
-# callsign: required (no valid callsign: NetLoggerError, nothing sent).
-# program_id / program_version: your app, as in ADIF's PROGRAMID and PROGRAMVERSION (optional).
-nl = NetLoggerSource(callsign="KI7MT", program_id="OM-Logger", program_version="0.3")
-# User-Agent: OM-Logger/0.3 netlogger-mcp/0.1.0 (KI7MT; +https://github.com/qso-graph/netlogger-mcp)
-for net in nl.active_nets(name_like="OMISS")["nets"]:
+nl = NetLoggerSource(callsign="KI7MT")
+for net in nl.active_nets()["nets"]:
     live = nl.checkins(net["server"], net["name"])
     print(net["name"], "up now:", live["pointer"])
 ```
 
-Programs in other languages can run the server and call its tools over MCP (JSON-RPC on stdio or
-HTTP).
+Apps can also name themselves, using ADIF's `PROGRAMID` and `PROGRAMVERSION`: `NetLoggerSource(callsign="KI7MT", program_id="MyLogger", program_version="1.0")`.
 
-## Terms and privacy
+## Testing Without Network
 
-NetLogger's terms allow API use "in direct support of Radio Communications". This server is for that.
-It sends a User-Agent naming this project and the station using it. Parsing follows the spec: no assumptions about node order
-or count, unknown elements ignored, `<Warning>` messages logged for the developer. XML is parsed with
-`defusedxml`.
+```bash
+NETLOGGER_MCP_MOCK=1 netlogger-mcp
+```
+
+## MCP Inspector
+
+```bash
+netlogger-mcp --transport streamable-http --port 8014
+```
 
 ## Development
 
 ```bash
+git clone https://github.com/qso-graph/netlogger-mcp.git
+cd netlogger-mcp
 pip install -e ".[test]"
 pytest
 ```
 
-Part of [qso-graph](https://github.com/qso-graph). Licensed GPL-3.0-or-later.
+## License
+
+GPL-3.0-or-later

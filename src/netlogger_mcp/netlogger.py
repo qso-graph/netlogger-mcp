@@ -4,8 +4,8 @@ A plain library. Programs can use it directly; the MCP server is a thin layer
 over it. Everything it returns is a contract record (contract.py).
 
     from netlogger_mcp.netlogger import NetLoggerSource
-    nl = NetLoggerSource(callsign="KI7MT", program_id="OM-Logger", program_version="0.3")
-    nl.active_nets(name_like="OMISS")
+    nl = NetLoggerSource(callsign="KI7MT", program_id="MyLogger", program_version="1.0")
+    nl.active_nets(name_like="ARES")
 
 Every request names the station using it (its callsign) and, if given, the
 program (ADIF's PROGRAMID and PROGRAMVERSION), in the User-Agent, so NetLogger
@@ -319,7 +319,7 @@ class NetLoggerSource:
     ) -> None:
         """``callsign``: the station using it (required). ``program_id`` and
         ``program_version``: the app built on this library, as in ADIF's
-        PROGRAMID and PROGRAMVERSION (e.g. "OM-Logger", "0.3"); optional."""
+        PROGRAMID and PROGRAMVERSION (e.g. "MyLogger", "1.0"); optional."""
         self.callsign = normalize_callsign(callsign)
         self.user_agent = user_agent(self.callsign, program_id, program_version)
         self._fetch = fetch or _urllib_fetch(self.user_agent)
