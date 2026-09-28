@@ -89,7 +89,10 @@ user's callsign, or the club's for a shared server.
 ```python
 from netlogger_mcp.netlogger import NetLoggerSource
 
-nl = NetLoggerSource(callsign="KI7MT")   # no valid callsign: NetLoggerError, nothing sent
+# callsign: required (no valid callsign: NetLoggerError, nothing sent).
+# program_id / program_version: your app, as in ADIF's PROGRAMID and PROGRAMVERSION (optional).
+nl = NetLoggerSource(callsign="KI7MT", program_id="OM-Logger", program_version="0.3")
+# User-Agent: OM-Logger/0.3 netlogger-mcp/0.1.0 (KI7MT; +https://github.com/qso-graph/netlogger-mcp)
 for net in nl.active_nets(name_like="OMISS")["nets"]:
     live = nl.checkins(net["server"], net["name"])
     print(net["name"], "up now:", live["pointer"])

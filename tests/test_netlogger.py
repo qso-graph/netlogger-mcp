@@ -418,3 +418,27 @@ class TestCallsign:
         NetLoggerSource("KI7MT").active_nets()
         assert "(KI7MT; " in seen["ua"]
         assert seen["url"].startswith("https://")
+
+
+class TestProgramId:
+    """ADIF's PROGRAMID and PROGRAMVERSION name the app built on the library."""
+
+    def test_program_leads_the_user_agent(self):
+        nl = NetLoggerSource("KI7MT", program_id="OM-Logger", program_version="0.3", fetch=FakeNetLogger())
+        assert nl.user_agent.startswith("OM-Logger/0.3 netlogger-mcp/")
+        assert nl.user_agent.endswith("(KI7MT; +https://github.com/qso-graph/netlogger-mcp)")
+
+    def test_program_without_version(self):
+        nl = NetLoggerSource("KI7MT", program_id="OM-Logger", fetch=FakeNetLogger())
+        assert nl.user_agent.startswith("OM-Logger netlogger-mcp/")
+
+    def test_optional(self):
+        assert NetLoggerSource("KI7MT", fetch=FakeNetLogger()).user_agent.startswith("netlogger-mcp/")
+
+    @pytest.mark.parametrize("program_id,version", [
+        ("OM Logger", None), ("OM/Logger", None), ("OM-Logger", "0.3 beta"), ("", "0.3"), ("a" * 65, None),
+        ("OM-Logger\r\nX-Injected: 1", None),
+    ])
+    def test_rejected(self, program_id, version):
+        with pytest.raises(NetLoggerError, match="program"):
+            NetLoggerSource("KI7MT", program_id=program_id, program_version=version)
