@@ -296,8 +296,10 @@ class NetLoggerSource:
                 log.warning("NetLogger %s failed: %s", routine, e)
                 return self._stale_or_raise(hit, NetLoggerError("NetLogger couldn't be reached"))
 
+            # NetLogger's 429 is anti-flooding aimed at the client, and every routine
+            # hits the same server, so a 429 on one stops them all.
             if status == 429:
-                self._limiter.block(routine, _retry_after(retry_after))
+                self._limiter.block_all(_retry_after(retry_after))
                 return self._stale_or_raise(hit, RateLimited(routine, _retry_after(retry_after)))
             if len(body) > MAX_BODY:
                 return self._stale_or_raise(hit, NetLoggerError("NetLogger's response was too large"))
@@ -310,7 +312,7 @@ class NetLoggerSource:
                 return self._stale_or_raise(hit, e)
             code = parsed.status()
             if code == 429:
-                self._limiter.block(routine, MIN_BACKOFF)
+                self._limiter.block_all(MIN_BACKOFF)
                 return self._stale_or_raise(hit, RateLimited(routine, MIN_BACKOFF))
             if code is not None and code >= 500:
                 return self._stale_or_raise(hit, NetLoggerError(f"NetLogger reported an error ({code})"))

@@ -47,11 +47,12 @@ class RateLimiter:
             calls.append(now)
             return 0.0
 
-    def block(self, routine: str, seconds: float) -> None:
-        """Stop calling ``routine`` for ``seconds`` (after a 429)."""
+    def block_all(self, seconds: float) -> None:
+        """Stop calling every routine for ``seconds`` (after a 429 on any of them)."""
         with self._lock:
             until = self._clock() + seconds
-            self._blocked_until[routine] = max(until, self._blocked_until.get(routine, 0.0))
+            for routine in self._limits:
+                self._blocked_until[routine] = max(until, self._blocked_until.get(routine, 0.0))
 
 
 class Cache:

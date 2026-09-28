@@ -311,6 +311,33 @@ class TestTooManyRequests:
         nl.past_checkins("NETLOGGER", "Net", 2)
         assert len(fake.urls) == 2
 
+    def test_429_on_one_routine_stops_them_all(self, clock):
+        fake = FakeNetLogger(status=429, body=b"")
+        nl = NetLoggerSource(fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        with pytest.raises(RateLimited):
+            nl.checkins("NETLOGGER", "Net")
+        fake.status, fake.body = 200, None
+        clock.now += 30
+        for fn, args in [(nl.active_nets, ()), (nl.past_nets, ()), (nl.past_checkins, ("NETLOGGER", "Net", 1)),
+                         (nl.checkins, ("NETLOGGER", "Other"))]:
+            with pytest.raises(RateLimited):
+                fn(*args)
+        assert len(fake.urls) == 1
+        clock.now += 30
+        nl.active_nets()
+        assert len(fake.urls) == 2
+
+    def test_429_elsewhere_still_answers_from_cache(self, nl, fake, clock):
+        nl.active_nets()
+        clock.now += 50
+        fake.status, fake.body = 429, b""
+        with pytest.raises(RateLimited):
+            nl.checkins("NETLOGGER", "Net")  # blocks everything until +110
+        clock.now += 30  # active nets are 80 s old, past their reuse time, but NetLogger said stop
+        fake.status, fake.body = 200, None
+        r = nl.active_nets()
+        assert r["stale"] is True and r["total"] == 2
+
     def test_retry_after_honoured(self, clock):
         fake = FakeNetLogger(status=429, body=b"", retry_after="300")
         nl = NetLoggerSource(fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))

@@ -39,8 +39,9 @@ with `GetCheckins`, so it's never called.
 
 A limit is checked before a request is sent, never after. Over the limit, the answer comes from
 cache with its age (`age_seconds`, `stale`), or the result says when to try again. A
-`429 Too Many Requests` stops calls to that routine for at least a minute, longer if NetLogger's
-`Retry-After` asks. Past nets older than 7 days need a name filter (NetLogger's rule).
+`429 Too Many Requests` on any call stops **all** calls to NetLogger for at least a minute, longer
+if NetLogger's `Retry-After` asks. NetLogger's anti-flooding is aimed at the client, and every call
+reaches the same server. Past nets older than 7 days need a name filter (NetLogger's rule).
 
 The limits are per process. Every tool call in one server shares them.
 
