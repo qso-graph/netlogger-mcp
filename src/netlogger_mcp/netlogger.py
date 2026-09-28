@@ -27,7 +27,8 @@ from defusedxml.ElementTree import fromstring
 
 from . import __version__
 from .contract import BOOL_FIELDS, CHECKIN_FIELDS, INT_FIELDS, NET_FIELDS, TIME_FIELDS
-from .limiter import Cache, RateLimiter
+from .limiter import Cache, RateLimiter, SharedRateLimiter
+from .paths import limits_file
 
 log = logging.getLogger("netlogger_mcp")
 
@@ -313,7 +314,7 @@ class NetLoggerSource:
         program_id: str | None = None,
         program_version: str | None = None,
         fetch: Fetch | None = None,
-        limiter: RateLimiter | None = None,
+        limiter: RateLimiter | SharedRateLimiter | None = None,
         cache: Cache | None = None,
     ) -> None:
         """``callsign``: the station using it (required). ``program_id`` and
@@ -322,7 +323,8 @@ class NetLoggerSource:
         self.callsign = normalize_callsign(callsign)
         self.user_agent = user_agent(self.callsign, program_id, program_version)
         self._fetch = fetch or _urllib_fetch(self.user_agent)
-        self._limiter = limiter or RateLimiter(LIMITS)
+        # By default every copy on this computer shares one budget (one station).
+        self._limiter = limiter or SharedRateLimiter(LIMITS, limits_file())
         self._cache = cache or Cache()
         self._inflight = threading.Lock()  # one request at a time
 

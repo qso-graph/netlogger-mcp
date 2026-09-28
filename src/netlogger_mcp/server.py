@@ -12,8 +12,9 @@ from fastmcp import FastMCP
 
 from . import __contract_version__, __spec_version__, __version__
 from . import settings
-from .limiter import Cache, RateLimiter
+from .limiter import Cache, RateLimiter, SharedRateLimiter
 from .netlogger import LIMITS, NetLoggerError, NetLoggerSource
+from .paths import limits_file
 
 mcp = FastMCP(
     "netlogger-mcp",
@@ -39,9 +40,22 @@ def _mock_fetch(url: str) -> tuple[int, bytes, str | None]:
 
 _source: NetLoggerSource | None = None
 # Owned by the process, not the source: changing the callsign rebuilds the
-# source but must never reset the call limits.
-_limiter = RateLimiter(LIMITS)
+# source but must never reset the call limits. The limiter is shared with every
+# other copy on this computer through a file; mock mode keeps its own, so a test
+# run never spends the real budget.
+_limiter: RateLimiter | SharedRateLimiter | None = None
 _cache = Cache()
+
+
+def _mock() -> bool:
+    return os.getenv("NETLOGGER_MCP_MOCK") == "1"
+
+
+def _get_limiter() -> RateLimiter | SharedRateLimiter:
+    global _limiter
+    if _limiter is None:
+        _limiter = RateLimiter(LIMITS) if _mock() else SharedRateLimiter(LIMITS, limits_file())
+    return _limiter
 
 
 class NeedsCallsign(Exception):
@@ -65,8 +79,8 @@ def _get_source() -> NetLoggerSource:
         if callsign is None:
             raise NeedsCallsign
         _source = NetLoggerSource(
-            callsign, fetch=_mock_fetch if os.getenv("NETLOGGER_MCP_MOCK") == "1" else None,
-            limiter=_limiter, cache=_cache,
+            callsign, fetch=_mock_fetch if _mock() else None,
+            limiter=_get_limiter(), cache=_cache,
         )
     return _source
 

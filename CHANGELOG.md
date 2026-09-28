@@ -11,5 +11,7 @@
   asks once on first use and saves it (`netlogger_set_callsign`); the library requires it.
 - Apps built on the library name themselves with ADIF's PROGRAMID and PROGRAMVERSION, which lead
   the User-Agent (`OM-Logger/0.3 netlogger-mcp/0.1.0 (KI7MT; +…)`).
+- The call budget is shared by every copy on the computer (a locked state file), so two AI apps
+  can't double the calls. It never fails open.
 - Street, ZIP and IP address never returned.
 - `NetLoggerSource` usable as a plain Python library.
