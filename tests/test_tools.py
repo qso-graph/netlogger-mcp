@@ -27,8 +27,10 @@ def config(tmp_path, monkeypatch):
     monkeypatch.setenv("NETLOGGER_MCP_CONFIG_DIR", str(tmp_path))
     monkeypatch.delenv("NETLOGGER_MCP_CALLSIGN", raising=False)
     server._source = None
+    server._limiter = None
     yield tmp_path
     server._source = None
+    server._limiter = None
 
 
 @pytest.fixture
@@ -93,11 +95,23 @@ def test_environment_overrides_the_file(monkeypatch):
 
 def test_changing_callsign_keeps_the_limits(with_callsign):
     """A new callsign must not buy a fresh set of calls."""
-    limiter = server._limiter
     call("netlogger_checkins", {"server_name": "NETLOGGER", "net_name": "A"})
+    limiter = server._get_limiter()
     call("netlogger_set_callsign", {"callsign": "N0CALL"})
     call("netlogger_checkins", {"server_name": "NETLOGGER", "net_name": "B"})
-    assert server._limiter is limiter and server._source._limiter is limiter
+    assert server._get_limiter() is limiter and server._source._limiter is limiter
+
+
+def test_mock_mode_never_spends_the_shared_budget(with_callsign, config):
+    call("netlogger_active_nets")
+    assert type(server._get_limiter()).__name__ == "RateLimiter"
+    assert not list(config.rglob("limits.json"))
+
+
+def test_real_mode_shares_the_budget(with_callsign, monkeypatch):
+    monkeypatch.setenv("NETLOGGER_MCP_MOCK", "0")
+    server._source = server._limiter = None
+    assert type(server._get_limiter()).__name__ == "SharedRateLimiter"
 
 
 # The tools

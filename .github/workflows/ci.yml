@@ -14,12 +14,22 @@ concurrency:
 
 jobs:
   test:
-    name: pytest (${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    name: pytest (${{ matrix.os }}, ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        # Most hams run Windows, and the shared call budget uses a different
+        # file lock there (msvcrt) than on Linux and macOS (flock).
+        os: [ubuntu-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+        include:
+          - os: windows-latest
+            python-version: "3.10"
+          - os: windows-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.13"
     steps:
       - uses: actions/checkout@v4
 
@@ -35,7 +45,7 @@ jobs:
           pip install -e ".[test]"
 
       - name: Run unit tests (L2)
-        run: python -m pytest tests/test_netlogger.py tests/test_tools.py -v
+        run: python -m pytest tests --ignore=tests/test_security.py -v
 
       - name: Run security tests
         run: python -m pytest tests/test_security.py -v

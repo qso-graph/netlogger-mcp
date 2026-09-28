@@ -43,7 +43,19 @@ cache with its age (`age_seconds`, `stale`), or the result says when to try agai
 if NetLogger's `Retry-After` asks. NetLogger's anti-flooding is aimed at the client, and every call
 reaches the same server. Past nets older than 7 days need a name filter (NetLogger's rule).
 
-The limits are per process. Every tool call in one server shares them.
+**One budget per user account.** Every request carries your callsign, so to NetLogger all your
+copies are one station: Claude Desktop and Claude Code each running the server, a script using the
+library, and so on. They share one budget through a small state file (`limits.json`, beside the
+settings file), updated under a lock the operating system enforces between processes. Another
+account on the same computer has its own folder, and its own callsign. The rules:
+- **A 429 seen by any copy stops them all.**
+- **It never fails open.** If the file is unreadable, it assumes the whole budget was spent and
+  waits a full minute. If the file can't be used at all, that copy keeps to the limits on its own,
+  starting with a minute's pause, and logs why.
+- **One glitch doesn't strand a copy.** A copy on its own tries the file again after a minute. Once
+  the file works, it rejoins the shared budget and carries back the calls it made on its own.
+- **Clock changes don't help.** If the clock goes back, recorded calls count as "now", so they stay
+  in the window longer, not shorter.
 
 ## Install
 
