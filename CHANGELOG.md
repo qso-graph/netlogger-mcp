@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-09-28)
 
 - Tools for every documented NetLogger API 1.3 call: active nets, live check-ins with the pointer,
   past nets, past check-ins; plus `get_version_info`.
