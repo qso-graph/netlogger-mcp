@@ -88,11 +88,12 @@ jobs:
   # ---------------------------------------------------------------------------
   registry-publish:
     name: Publish to MCP Registry
-    needs: publish
+    needs: publish  # waits for PyPI publish to succeed
     runs-on: ubuntu-latest
     permissions:
-      id-token: write   # GitHub OIDC auth to the Registry
+      id-token: write   # GitHub OIDC
       contents: read
+
     steps:
       - uses: actions/checkout@v5
 
@@ -102,7 +103,7 @@ jobs:
       - name: Install mcp-publisher
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
-          ./mcp-publisher --help > /dev/null
+          ./mcp-publisher --help > /dev/null  # smoke test
 
       - name: Bump server.json to tag version
         run: |
@@ -114,11 +115,47 @@ jobs:
           mv /tmp/server.json server.json
           cat server.json
 
+      # The Registry checks PyPI itself and refuses a version PyPI isn't
+      # serving yet, which can lag the upload by a minute or more.
+      - name: Wait until PyPI serves this version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PACKAGE="$(jq -r '.packages[0].identifier' server.json)"
+          for i in $(seq 1 40); do
+            if curl -fsS "https://pypi.org/pypi/${PACKAGE}/${TAG_VERSION}/json" > /dev/null; then
+              echo "PyPI serves ${PACKAGE} ${TAG_VERSION}"
+              exit 0
+            fi
+            echo "attempt ${i}: PyPI doesn't serve ${PACKAGE} ${TAG_VERSION} yet"
+            sleep 15
+          done
+          echo "FAIL: PyPI never served ${PACKAGE} ${TAG_VERSION}"
+          exit 1
+
       - name: Authenticate to MCP Registry (GitHub OIDC)
         run: ./mcp-publisher login github-oidc
 
+      # Retries ride out the Registry's own transient failures. Before each
+      # retry, check whether an earlier attempt landed despite the error.
       - name: Publish to MCP Registry
-        run: ./mcp-publisher publish
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          NAME="$(jq -r '.name' server.json)"
+          REGISTRY="https://registry.modelcontextprotocol.io/v0/servers?search=${NAME}&version=latest"
+          for i in 1 2 3 4 5; do
+            if ./mcp-publisher publish; then
+              exit 0
+            fi
+            echo "attempt ${i} failed; retrying in $((i * 30)) s"
+            sleep $((i * 30))
+            REG="$(curl -fsS "$REGISTRY" | jq -r --arg n "$NAME" '[.servers[] | select(.server.name == $n) | .server.version][0] // empty' || true)"
+            if [ "$REG" = "$TAG_VERSION" ]; then
+              echo "The Registry already has ${NAME} ${TAG_VERSION}; an earlier attempt landed"
+              exit 0
+            fi
+          done
+          echo "FAIL: the MCP Registry refused the publish 5 times"
+          exit 1
 
   # ---------------------------------------------------------------------------
   # Verify — a release is complete only when PyPI AND the MCP Registry both
