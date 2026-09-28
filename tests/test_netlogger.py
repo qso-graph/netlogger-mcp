@@ -69,7 +69,7 @@ def fake() -> FakeNetLogger:
 
 @pytest.fixture
 def nl(fake: FakeNetLogger, clock: Clock) -> NetLoggerSource:
-    return NetLoggerSource(fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+    return NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +154,7 @@ class TestParsing:
         body = (b"<NetLoggerXML><Header><TimeZone>UTC</TimeZone></Header>"
                 b"<Error>Not a Valid ServerName or NetName</Error><ResponseCode>404 Not Found</ResponseCode>"
                 b"</NetLoggerXML>")
-        nl = NetLoggerSource(fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
         r = nl.checkins("NETLOGGER", "no such net")
         assert r["checkins"] == [] and r["checkin_count"] == 0
         assert r["message"] == "Not a Valid ServerName or NetName"
@@ -298,7 +298,7 @@ class TestLimits:
 class TestTooManyRequests:
     def test_http_429_backs_off_a_minute(self, clock):
         fake = FakeNetLogger(status=429, body=b"")
-        nl = NetLoggerSource(fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
         with pytest.raises(RateLimited):
             nl.past_checkins("NETLOGGER", "Net", 1)
         fake.status, fake.body = 200, None
@@ -313,7 +313,7 @@ class TestTooManyRequests:
 
     def test_429_on_one_routine_stops_them_all(self, clock):
         fake = FakeNetLogger(status=429, body=b"")
-        nl = NetLoggerSource(fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
         with pytest.raises(RateLimited):
             nl.checkins("NETLOGGER", "Net")
         fake.status, fake.body = 200, None
@@ -340,7 +340,7 @@ class TestTooManyRequests:
 
     def test_retry_after_honoured(self, clock):
         fake = FakeNetLogger(status=429, body=b"", retry_after="300")
-        nl = NetLoggerSource(fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
         with pytest.raises(RateLimited) as e:
             nl.past_checkins("NETLOGGER", "Net", 1)
         assert e.value.retry_after == 300
@@ -354,7 +354,7 @@ class TestTooManyRequests:
         body = (b"<NetLoggerXML><Header/><Error>Too many requests</Error>"
                 b"<ResponseCode>429 Too Many Requests</ResponseCode></NetLoggerXML>")
         fake = FakeNetLogger(body=body)
-        nl = NetLoggerSource(fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
         with pytest.raises(RateLimited):
             nl.checkins("NETLOGGER", "Net")
         clock.now += 30
@@ -371,3 +371,50 @@ class TestTooManyRequests:
         nl._fetch = down
         r = nl.active_nets()
         assert r["stale"] is True and r["total"] == 2 and "couldn't be reached" in r["note"]
+
+
+# ---------------------------------------------------------------------------
+# Every request names the station: no anonymous mode
+# ---------------------------------------------------------------------------
+
+
+class TestCallsign:
+    @pytest.mark.parametrize("bad", [None, "", "   ", "KI", "NOCALL", "1234", "KI7MT!", "KI 7MT", "A" * 21])
+    def test_required_and_checked(self, bad):
+        with pytest.raises(NetLoggerError, match="callsign"):
+            NetLoggerSource(bad)
+
+    @pytest.mark.parametrize("given,saved", [("ki7mt", "KI7MT"), (" KI7MT ", "KI7MT"), ("ki7mt/p", "KI7MT/P"), ("VE3/KI7MT", "VE3/KI7MT")])
+    def test_normalized(self, given, saved):
+        assert NetLoggerSource(given, fetch=FakeNetLogger()).callsign == saved
+
+    def test_user_agent_names_the_station(self):
+        nl = NetLoggerSource("ki7mt", fetch=FakeNetLogger())
+        assert nl.user_agent.startswith("netlogger-mcp/")
+        assert "(KI7MT; +https://github.com/qso-graph/netlogger-mcp)" in nl.user_agent
+
+    def test_real_requests_carry_it(self, monkeypatch):
+        seen = {}
+
+        class Resp:
+            status = 200
+            headers = {}
+
+            def read(self, n):
+                return sample("GetActiveNets")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        def urlopen(req, timeout):
+            seen["ua"] = req.get_header("User-agent")
+            seen["url"] = req.full_url
+            return Resp()
+
+        monkeypatch.setattr("urllib.request.urlopen", urlopen)
+        NetLoggerSource("KI7MT").active_nets()
+        assert "(KI7MT; " in seen["ua"]
+        assert seen["url"].startswith("https://")

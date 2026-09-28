@@ -57,17 +57,39 @@ Claude Code / Claude Desktop:
 "netlogger": { "command": "netlogger-mcp" }
 ```
 
-No API key or credentials are needed. For testing without the network, set `NETLOGGER_MCP_MOCK=1`
-to answer from bundled synthetic samples.
+No API key or password is needed. **Your callsign is.**
+
+## Your callsign
+
+Every request tells NetLogger which station is asking, in the User-Agent:
+
+```
+netlogger-mcp/0.1.0 (KI7MT; +https://github.com/qso-graph/netlogger-mcp)
+```
+
+That way, NetLogger can tell users apart. Without it, every install would look like one client, and
+one misbehaving install could get everyone blocked. There is no anonymous mode.
+
+- **Nothing to configure.** On first use, the server says it needs your callsign, the AI asks you,
+  and it's saved (`netlogger_set_callsign`). You're asked once.
+- **Saved** in a small settings file: `~/.config/netlogger-mcp/settings.json` on Linux,
+  `~/Library/Application Support/netlogger-mcp/` on macOS, `%APPDATA%\netlogger-mcp\` on Windows.
+  A callsign is public, not a password.
+- **Or set it** with `NETLOGGER_MCP_CALLSIGN=KI7MT`, which overrides the file.
+- Changing the callsign never resets the call limits.
+
+For testing without the network, set `NETLOGGER_MCP_MOCK=1` to answer from bundled synthetic samples.
 
 ## As a library
 
-Programs that don't need an AI use the same code directly, with the same limits, cache and contract:
+Programs that don't need an AI use the same code directly, with the same limits, cache and contract.
+A library can't ask anyone anything, so it requires the callsign: the program passes in the signed-in
+user's callsign, or the club's for a shared server.
 
 ```python
 from netlogger_mcp.netlogger import NetLoggerSource
 
-nl = NetLoggerSource()
+nl = NetLoggerSource(callsign="KI7MT")   # no valid callsign: NetLoggerError, nothing sent
 for net in nl.active_nets(name_like="OMISS")["nets"]:
     live = nl.checkins(net["server"], net["name"])
     print(net["name"], "up now:", live["pointer"])
@@ -79,7 +101,7 @@ HTTP).
 ## Terms and privacy
 
 NetLogger's terms allow API use "in direct support of Radio Communications". This server is for that.
-It sends a User-Agent naming this project. Parsing follows the spec: no assumptions about node order
+It sends a User-Agent naming this project and the station using it. Parsing follows the spec: no assumptions about node order
 or count, unknown elements ignored, `<Warning>` messages logged for the developer. XML is parsed with
 `defusedxml`.
 

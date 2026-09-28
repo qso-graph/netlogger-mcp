@@ -4,8 +4,11 @@ A plain library. Programs can use it directly; the MCP server is a thin layer
 over it. Everything it returns is a contract record (contract.py).
 
     from netlogger_mcp.netlogger import NetLoggerSource
-    nl = NetLoggerSource()
+    nl = NetLoggerSource(callsign="KI7MT")
     nl.active_nets(name_like="OMISS")
+
+Every request names the station using it (its callsign, in the User-Agent), so
+NetLogger can tell one user from another. There is no anonymous mode.
 """
 
 from __future__ import annotations
@@ -29,7 +32,7 @@ log = logging.getLogger("netlogger_mcp")
 
 BASE = "https://www.netlogger.org/api/"
 SOURCE = "netlogger"
-USER_AGENT = f"netlogger-mcp/{__version__} (+https://github.com/qso-graph/netlogger-mcp)"
+REPO = "https://github.com/qso-graph/netlogger-mcp"
 
 # NetLogger's published guidance, calls per minute (spec v1.2+). Never exceeded.
 LIMITS = {
@@ -56,6 +59,9 @@ MAX_BODY = 5 * 1024 * 1024
 _SERVER_RE = re.compile(r"[A-Za-z0-9_-]{1,32}")
 _NET_ID_RE = re.compile(r"[0-9]{1,12}")
 _CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
+# A sanity check, not ADIF validation: letters, digits and "/" (portable
+# suffixes), with at least one letter and one digit.
+_CALLSIGN_RE = re.compile(r"(?=.*[A-Z])(?=.*[0-9])[A-Z0-9/]{3,20}")
 
 # fetch(url) -> (HTTP status, body, Retry-After header or None)
 Fetch = Callable[[str], "tuple[int, bytes, str | None]"]
@@ -77,6 +83,21 @@ class RateLimited(NetLoggerError):
 # ---------------------------------------------------------------------------
 # Input validation
 # ---------------------------------------------------------------------------
+
+
+def normalize_callsign(value: str | None) -> str:
+    """The station's callsign, upper-cased, or NetLoggerError."""
+    value = (value or "").strip().upper()
+    if not _CALLSIGN_RE.fullmatch(value):
+        raise NetLoggerError(
+            "a valid amateur radio callsign is required (e.g. KI7MT): NetLogger is told "
+            "which station is asking"
+        )
+    return value
+
+
+def user_agent(callsign: str) -> str:
+    return f"netlogger-mcp/{__version__} ({callsign}; +{REPO})"
 
 
 def _server_name(value: str) -> str:
@@ -238,13 +259,15 @@ def parse(body: bytes) -> Parsed:
 # ---------------------------------------------------------------------------
 
 
-def _urllib_fetch(url: str) -> tuple[int, bytes, str | None]:
-    req = urllib.request.Request(url, method="GET", headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return resp.status, resp.read(MAX_BODY + 1), resp.headers.get("Retry-After")
-    except urllib.error.HTTPError as e:
-        return e.code, e.read(MAX_BODY + 1) if e.fp else b"", e.headers.get("Retry-After")
+def _urllib_fetch(agent: str) -> Fetch:
+    def fetch(url: str) -> tuple[int, bytes, str | None]:
+        req = urllib.request.Request(url, method="GET", headers={"User-Agent": agent})
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                return resp.status, resp.read(MAX_BODY + 1), resp.headers.get("Retry-After")
+        except urllib.error.HTTPError as e:
+            return e.code, e.read(MAX_BODY + 1) if e.fp else b"", e.headers.get("Retry-After")
+    return fetch
 
 
 def _retry_after(header: str | None) -> float:
@@ -265,11 +288,14 @@ class NetLoggerSource:
 
     def __init__(
         self,
+        callsign: str,
         fetch: Fetch | None = None,
         limiter: RateLimiter | None = None,
         cache: Cache | None = None,
     ) -> None:
-        self._fetch = fetch or _urllib_fetch
+        self.callsign = normalize_callsign(callsign)
+        self.user_agent = user_agent(self.callsign)
+        self._fetch = fetch or _urllib_fetch(self.user_agent)
         self._limiter = limiter or RateLimiter(LIMITS)
         self._cache = cache or Cache()
         self._inflight = threading.Lock()  # one request at a time
