@@ -8,8 +8,6 @@ MCP server for [NetLogger](https://www.netlogger.org/): nets on the air now, liv
 
 Data from NetLogger's public XML Data Service (API 1.3). Part of the [qso-graph](https://qso-graph.io/) project. **No API key needed.** Your callsign is asked for once (see below).
 
-> **Version drift?** If the PyPI and MCP Registry badges show different versions, the Registry is catching up to the latest PyPI release on this server's next tag. Forward-only sync — we don't tag content-free releases just to sync. See [qso-graph/.github TEMPLATES.md](https://github.com/qso-graph/.github/blob/main/TEMPLATES.md) for the sync mechanism.
-
 ## Install
 
 ```bash

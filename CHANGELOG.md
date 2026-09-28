@@ -15,6 +15,9 @@
 - **Registry version badge** in README — PyPI and Registry versions
   are visible side-by-side so any drift between publishing surfaces
   is immediately apparent.
+- **Release gates** — the tag must match `pyproject.toml`, and a
+  `verify` job fails the release unless PyPI and the MCP Registry
+  both serve the new version.
 - `server.json` (`io.github.qso-graph/netlogger-mcp`).
 
 ## 0.1.0 (2026-09-28)
