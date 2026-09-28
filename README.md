@@ -11,7 +11,8 @@ Data from NetLogger's public XML Data Service (API 1.3). Part of the [qso-graph]
 ## Install
 
 ```bash
-pip install netlogger-mcp
+uvx netlogger-mcp            # run it; nothing to install
+pip install netlogger-mcp    # or install it into your own environment
 ```
 
 ## Tools
@@ -74,7 +75,8 @@ Add to `claude_desktop_config.json` (`~/Library/Application Support/Claude/` on 
 {
   "mcpServers": {
     "netlogger": {
-      "command": "netlogger-mcp"
+      "command": "uvx",
+      "args": ["netlogger-mcp"]
     }
   }
 }
@@ -88,7 +90,8 @@ Add to `.claude/settings.json`:
 {
   "mcpServers": {
     "netlogger": {
-      "command": "netlogger-mcp"
+      "command": "uvx",
+      "args": ["netlogger-mcp"]
     }
   }
 }
@@ -100,7 +103,8 @@ Add to `.claude/settings.json`:
 {
   "mcpServers": {
     "netlogger": {
-      "command": "netlogger-mcp"
+      "command": "uvx",
+      "args": ["netlogger-mcp"]
     }
   }
 }
@@ -114,7 +118,8 @@ Add to `.cursor/mcp.json` (project-level) or `~/.cursor/mcp.json` (global):
 {
   "mcpServers": {
     "netlogger": {
-      "command": "netlogger-mcp"
+      "command": "uvx",
+      "args": ["netlogger-mcp"]
     }
   }
 }
@@ -128,7 +133,8 @@ Add to `.vscode/mcp.json` in your workspace:
 {
   "servers": {
     "netlogger": {
-      "command": "netlogger-mcp"
+      "command": "uvx",
+      "args": ["netlogger-mcp"]
     }
   }
 }
@@ -142,11 +148,14 @@ Add to `~/.gemini/settings.json` (global) or `.gemini/settings.json` (project):
 {
   "mcpServers": {
     "netlogger": {
-      "command": "netlogger-mcp"
+      "command": "uvx",
+      "args": ["netlogger-mcp"]
     }
   }
 }
 ```
+
+Installed with pip instead? Use `"command": "netlogger-mcp"` in any config above.
 
 ### Ask questions
 
@@ -192,8 +201,8 @@ netlogger-mcp --transport streamable-http --port 8014
 ```bash
 git clone https://github.com/qso-graph/netlogger-mcp.git
 cd netlogger-mcp
-pip install -e ".[test]"
-pytest
+uv sync --group dev
+uv run pytest
 ```
 
 ## License
