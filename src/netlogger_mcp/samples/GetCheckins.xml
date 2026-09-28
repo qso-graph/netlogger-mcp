@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic sample in the shape of the NetLogger API 1.3 spec. Not real data;
+     the street, ZIP and names are invented, and must never appear in output. -->
+<NetLoggerXML>
+<Header>
+<CreationDateUTC>Mon 09/28/2026 01:31:00</CreationDateUTC>
+<Copyright>The NetLogger System 2026</Copyright>
+<APIVersion>1.3.1</APIVersion>
+<TimeZone>UTC</TimeZone>
+<Warning>Sample warning for the developer</Warning>
+</Header>
+<CheckinList>
+<ServerName>NETLOGGER2</ServerName>
+<NetName>OMISS 80m SSB Net</NetName>
+<ResponseCode>200 OK</ResponseCode>
+<CheckinCount>2</CheckinCount>
+<Pointer>2</Pointer>
+<Checkin>
+<SerialNo>2</SerialNo>
+<Callsign>N0CALL</Callsign>
+<State>MN</State>
+<Remarks>mobile</Remarks>
+<QSLInfo>LOTW</QSLInfo>
+<CityCountry>Exampleton</CityCountry>
+<FirstName>PAT</FirstName>
+<Status>(m)</Status>
+<County>EXAMPLE</County>
+<Grid>EN34</Grid>
+<Street>123 Example Street</Street>
+<Zip>99999</Zip>
+<MemberID>1234</MemberID>
+<Country>United States</Country>
+<DXCC>291</DXCC>
+<PreferredName/>
+</Checkin>
+<Checkin>
+<SerialNo>1</SerialNo>
+<Callsign>KI7MT</Callsign>
+<State>ID</State>
+<Remarks></Remarks>
+<QSLInfo>LOTW</QSLInfo>
+<CityCountry>Boise</CityCountry>
+<FirstName>GREG</FirstName>
+<Status> </Status>
+<County>ADA</County>
+<Grid>DN13</Grid>
+<Street>456 Sample Road</Street>
+<Zip>88888</Zip>
+<MemberID>7212</MemberID>
+<Country>United States</Country>
+<DXCC>291</DXCC>
+<PreferredName>Greg</PreferredName>
+</Checkin>
+</CheckinList>
+</NetLoggerXML>

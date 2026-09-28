@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/qso-graph/netlogger-mcp/schema/contract.schema.json",
+  "title": "Net-logging records, contract 0.1",
+  "description": "What every netlogger-mcp tool returns, whatever the source (NetLogger now, the OM-Logger next). A source maps onto these fields and nothing else; additionalProperties is false so a private field (street address, ZIP code, IP address) can never pass through. Times are ISO 8601 UTC when the source says UTC.",
+  "$defs": {
+    "source": {"type": "string", "enum": ["netlogger", "om-logger"]},
+    "freshness": {
+      "type": "object",
+      "properties": {
+        "cached": {"type": "boolean", "description": "Answered from cache rather than a new call"},
+        "age_seconds": {"type": "integer", "minimum": 0},
+        "stale": {"type": "boolean", "description": "Older than its normal reuse time; used because the call limit was reached or the source was unavailable"},
+        "note": {"type": "string"}
+      },
+      "required": ["cached", "age_seconds", "stale"]
+    },
+    "net": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {"$ref": "#/$defs/source"},
+        "server": {"type": "string"},
+        "name": {"type": "string", "description": "The net's name when opened"},
+        "current_name": {"type": "string", "description": "The name net control changed it to, if any"},
+        "frequency": {"type": "string", "description": "As the logger entered it, e.g. 3.825"},
+        "band": {"type": "string"},
+        "mode": {"type": "string"},
+        "net_control": {"type": "string"},
+        "logger": {"type": "string", "description": "The station logging, with its client version"},
+        "opened": {"type": "string"},
+        "monitoring": {"type": "integer", "minimum": 0},
+        "net_id": {"type": "integer", "description": "Past nets: the ID past check-ins need"},
+        "closed": {"type": "string"},
+        "last_activity": {"type": "string"},
+        "aim": {"type": "boolean", "description": "Whether the net's chat (AIM) was on"},
+        "aim_update_ms": {"type": "integer"},
+        "inactivity_timeout_minutes": {"type": "integer"},
+        "auto_closed": {"type": "boolean", "description": "Closed by the server for inactivity"}
+      },
+      "required": ["source", "server", "name"]
+    },
+    "checkin": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {"$ref": "#/$defs/source"},
+        "serial": {"type": "integer", "description": "Position on the list; the pointer refers to it"},
+        "callsign": {"type": "string"},
+        "first_name": {"type": "string"},
+        "preferred_name": {"type": "string"},
+        "city": {"type": "string"},
+        "county": {"type": "string"},
+        "state": {"type": "string"},
+        "country": {"type": "string"},
+        "dxcc": {"type": "integer"},
+        "grid": {"type": "string"},
+        "status": {"type": "string", "description": "The logger's status marks, as entered"},
+        "remarks": {"type": "string"},
+        "qsl_info": {"type": "string"},
+        "member_id": {"type": "string", "description": "Club member number, when the net's club records one"}
+      },
+      "required": ["source", "callsign"]
+    },
+    "net_list": {
+      "allOf": [{"$ref": "#/$defs/freshness"}],
+      "type": "object",
+      "properties": {
+        "source": {"$ref": "#/$defs/source"},
+        "total": {"type": "integer", "minimum": 0},
+        "interval_days": {"type": "integer"},
+        "nets": {"type": "array", "items": {"$ref": "#/$defs/net"}}
+      },
+      "required": ["source", "total", "nets"]
+    },
+    "checkin_list": {
+      "allOf": [{"$ref": "#/$defs/freshness"}],
+      "type": "object",
+      "properties": {
+        "source": {"$ref": "#/$defs/source"},
+        "server": {"type": "string"},
+        "net": {"type": "string"},
+        "net_id": {"type": "integer"},
+        "checkin_count": {"type": "integer", "minimum": 0},
+        "pointer": {"type": ["integer", "null"], "description": "Serial number of the station being worked now (live nets)"},
+        "message": {"type": "string"},
+        "checkins": {"type": "array", "items": {"$ref": "#/$defs/checkin"}}
+      },
+      "required": ["source", "server", "net", "checkin_count", "checkins"]
+    }
+  }
+}
