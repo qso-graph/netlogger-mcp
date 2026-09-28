@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.qso-graph/netlogger-mcp",
+  "description": "NetLogger MCP server. Nets on the air, live check-ins and who's up, past nets.",
+  "repository": {
+    "url": "https://github.com/qso-graph/netlogger-mcp",
+    "source": "github"
+  },
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "netlogger-mcp",
+      "version": "0.1.1",
+      "transport": { "type": "stdio" }
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "tool": "mcp-publisher",
+      "version": "2.0.0"
+    }
+  }
+}

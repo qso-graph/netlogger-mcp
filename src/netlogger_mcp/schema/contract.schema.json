@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/qso-graph/netlogger-mcp/schema/contract.schema.json",
   "title": "Net-logging records, contract 0.1",
-  "description": "What every netlogger-mcp tool returns, whatever the source (NetLogger now, the OM-Logger next). A source maps onto these fields and nothing else; additionalProperties is false so a private field (street address, ZIP code, IP address) can never pass through. Times are ISO 8601 UTC when the source says UTC.",
+  "description": "What every netlogger-mcp tool returns. A source maps onto these fields and nothing else; additionalProperties is false so a private field (street address, ZIP code, IP address) can never pass through. Times are ISO 8601 UTC when the source says UTC.",
   "$defs": {
-    "source": {"type": "string", "enum": ["netlogger", "om-logger"]},
+    "source": {"type": "string", "enum": ["netlogger"]},
     "freshness": {
       "type": "object",
       "properties": {

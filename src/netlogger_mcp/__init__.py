@@ -17,5 +17,4 @@ __version__: Final[str] = _pkg_version
 __spec_version__: Final[str] = "netlogger-xml-api-1.3"
 
 # Version of the records the tools return (schema/contract.schema.json).
-# Every source (NetLogger now, the OM-Logger next) maps onto this.
 __contract_version__: Final[str] = "0.1"
