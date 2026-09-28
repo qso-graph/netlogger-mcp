@@ -66,6 +66,11 @@ class RateLimiter:
             for routine in self._limits:
                 self._blocked_until[routine] = max(until, self._blocked_until.get(routine, 0.0))
 
+    def snapshot(self) -> tuple[dict[str, list[float]], dict[str, float]]:
+        """(calls per routine, blocked-until per routine), on this limiter's clock."""
+        with self._lock:
+            return {k: list(v) for k, v in self._calls.items() if v}, dict(self._blocked_until)
+
 
 @contextmanager
 def _file_lock(path: Path) -> Iterator[None]:
@@ -94,19 +99,23 @@ MAX_BLOCK = 3600.0 + WINDOW  # no back-off in the file is trusted beyond this
 
 
 class SharedRateLimiter:
-    """The same limits, shared by every process on this computer.
+    """The same limits, shared by every process the user runs.
 
-    Two AI apps on one computer each run their own copy of the server, and
-    every request carries the same callsign, so to NetLogger they're one
-    station. The budget lives in a state file, read and updated under a lock
-    the operating system enforces between processes.
+    Two AI apps each run their own copy of the server, and every request
+    carries the same callsign, so to NetLogger they're one station. The budget
+    lives in a state file in the user's config folder, read and updated under a
+    lock the operating system enforces between processes. (Another account on
+    the same computer has its own folder, and its own callsign.)
 
     Uses the wall clock, since processes share no other. A call stamped in the
     future (the clock went back) counts as now, which keeps it in the window
     longer, never shorter.
 
-    Never fails open: if the file can't be used, this process falls back to its
-    own limits, starting with a full window's back-off, and logs why.
+    Never fails open: if the file can't be used, this process keeps to the
+    limits on its own, starting with a full window's back-off, and logs why.
+    It tries the file again once a window has passed and, when that works,
+    rejoins the shared budget, bringing the calls it made on its own. A
+    long-running server isn't stranded on a private budget by one glitch.
     """
 
     def __init__(
@@ -122,8 +131,9 @@ class SharedRateLimiter:
         self._window = window
         self._clock = clock
         self._thread_lock = threading.Lock()
-        self._fallback = RateLimiter(limits, window)
-        self._fell_back = False
+        # Same clock as the file, so calls made on our own can be carried back in.
+        self._fallback = RateLimiter(limits, window, clock)
+        self._fell_back_at: float | None = None  # when the file last failed
 
     def _empty(self) -> dict[str, dict]:
         return {"calls": {}, "blocked_until": {}}
@@ -169,23 +179,44 @@ class SharedRateLimiter:
                 del data["blocked_until"][routine]
 
     def _fall_back(self, error: OSError) -> None:
-        if not self._fell_back:
-            self._fell_back = True
+        if self._fell_back_at is None:
             log.warning(
                 "can't share call limits through %s (%s); this process keeps to them on "
-                "its own, starting with a full window's back-off", self._path, error,
+                "its own, starting with a full window's back-off, and will try again",
+                self._path, error,
             )
             self._fallback.block_all(self._window)
+        self._fell_back_at = self._clock()
+
+    def _on_own(self) -> bool:
+        """True while this process should stay on its own budget."""
+        return self._fell_back_at is not None and self._clock() - self._fell_back_at < self._window
+
+    def _carry_back(self, data: dict[str, dict]) -> None:
+        """Rejoining: add the calls and back-offs this process made on its own."""
+        calls, blocked = self._fallback.snapshot()
+        for routine, stamps in calls.items():
+            data["calls"][routine] = data["calls"].get(routine, []) + stamps
+        for routine, until in blocked.items():
+            data["blocked_until"][routine] = max(until, data["blocked_until"].get(routine, 0.0))
+
+    def _rejoined(self) -> None:
+        if self._fell_back_at is not None:
+            log.warning("call limits are shared through %s again", self._path)
+            self._fell_back_at = None
+            self._fallback = RateLimiter(self._limits, self._window, self._clock)
 
     def try_acquire(self, routine: str) -> float:
         """Take a slot for ``routine`` and return 0, or return the seconds to wait."""
         limit = self._limits[routine]
-        if self._fell_back:
+        if self._on_own():
             return self._fallback.try_acquire(routine)
         try:
             with self._thread_lock, _file_lock(self._lock_path):
                 now = self._clock()
                 data = self._read(now)
+                if self._fell_back_at is not None:
+                    self._carry_back(data)
                 self._prune(data, now)
                 wait = 0.0
                 blocked = data["blocked_until"].get(routine, 0.0)
@@ -197,24 +228,28 @@ class SharedRateLimiter:
                 else:
                     data["calls"][routine] = calls + [now]
                 self._write(data)
-                return wait
+            self._rejoined()
+            return wait
         except OSError as e:
             self._fall_back(e)
             return self._fallback.try_acquire(routine)
 
     def block_all(self, seconds: float) -> None:
-        """Stop every process on this computer calling any routine for ``seconds``."""
+        """Stop every process sharing the budget calling any routine for ``seconds``."""
         self._fallback.block_all(seconds)
-        if self._fell_back:
+        if self._on_own():
             return
         try:
             with self._thread_lock, _file_lock(self._lock_path):
                 now = self._clock()
                 data = self._read(now)
+                if self._fell_back_at is not None:
+                    self._carry_back(data)
                 self._prune(data, now)
                 for routine in self._limits:
                     data["blocked_until"][routine] = max(now + seconds, data["blocked_until"].get(routine, 0.0))
                 self._write(data)
+            self._rejoined()
         except OSError as e:
             self._fall_back(e)
 

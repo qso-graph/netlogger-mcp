@@ -155,3 +155,79 @@ def test_another_process_waits_for_the_lock(tmp_path):
             out.get(timeout=3)  # blocked on our lock
     assert out.get(timeout=60) == 0  # released: it goes ahead
     p.join(timeout=60)
+
+
+class TestRejoin:
+    """One glitch mustn't strand a long-running server on a private budget."""
+
+    @pytest.fixture
+    def glitch(self, monkeypatch):
+        """Make the file lock fail while ``glitch.on`` is True."""
+        import netlogger_mcp.limiter as lim
+
+        real = lim._file_lock
+
+        class Switch:
+            on = False
+
+        def flaky(path):
+            if Switch.on:
+                raise OSError("simulated: file held by another program")
+            return real(path)
+
+        monkeypatch.setattr(lim, "_file_lock", flaky)
+        return Switch
+
+    def test_rejoins_after_a_window_once_the_file_works(self, path, clock, glitch, caplog):
+        a, b = two(path, clock)
+        glitch.on = True
+        with caplog.at_level("WARNING", logger="netlogger_mcp"):
+            assert a.try_acquire("GetActiveNets") > 0  # on its own, pausing a window
+        glitch.on = False
+        clock.now += 60
+        with caplog.at_level("WARNING", logger="netlogger_mcp"):
+            assert a.try_acquire("GetActiveNets") == 0  # back on the shared budget
+        assert "shared through" in caplog.text
+        assert b.try_acquire("GetActiveNets") > 0  # and the other copy sees that call
+
+    def test_brings_back_calls_made_on_its_own(self, path, clock, glitch):
+        a, b = two(path, clock)
+        glitch.on = True
+        a.try_acquire("GetActiveNets")          # t=0: the file fails; pause a window
+        clock.now += 60
+        a.try_acquire("GetActiveNets")          # t=60: still failing; on its own again
+        clock.now += 40
+        assert a.try_acquire("GetCheckins") == 0  # t=100: a call on its own budget
+        glitch.on = False
+        clock.now += 20
+        assert a.try_acquire("GetPastNets") == 0  # t=120: a window since the last failure; rejoins
+        # The t=100 GetCheckins call came back with it: only 2 more this minute, not 3.
+        assert b.try_acquire("GetCheckins") == 0
+        assert b.try_acquire("GetCheckins") == 0
+        assert b.try_acquire("GetCheckins") > 0
+
+    def test_brings_back_a_429_seen_on_its_own(self, path, clock, glitch):
+        a, b = two(path, clock)
+        glitch.on = True
+        a.try_acquire("GetActiveNets")          # t=0: falls back
+        a.block_all(600)                        # a 429 while on its own
+        glitch.on = False
+        clock.now += 60
+        a.try_acquire("GetActiveNets")          # rejoins, carrying the back-off
+        assert b.try_acquire("GetCheckins") > 500
+
+    def test_stays_on_its_own_while_the_file_keeps_failing(self, path, clock, glitch):
+        a = SharedRateLimiter(LIMITS, path, clock=clock)
+        glitch.on = True
+        for _ in range(5):
+            a.try_acquire("GetCheckins")
+            clock.now += 61
+        assert a._fell_back_at is not None
+        assert not path.exists()  # nothing written while failing
+
+    def test_no_second_penalty_on_a_failed_retry(self, path, clock, glitch):
+        a = SharedRateLimiter(LIMITS, path, clock=clock)
+        glitch.on = True
+        a.try_acquire("GetCheckins")            # t=0: pause a window
+        clock.now += 60
+        assert a.try_acquire("GetCheckins") == 0  # t=60: retry fails, but its own budget works
