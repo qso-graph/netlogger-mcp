@@ -6,6 +6,17 @@
   Policy, privacy, client setup and example questions.
 - Tool descriptions, docstrings and keywords no longer name other projects.
 
+### Added (CI hygiene)
+
+- **MCP Registry sync** — `publish.yml` now publishes to the [Official MCP Registry](https://registry.modelcontextprotocol.io)
+  after each PyPI publish, using GitHub OIDC for auth. Triggered on
+  `v*` tag push; no manual steps. Pattern documented in
+  [qso-graph/.github/TEMPLATES.md](https://github.com/qso-graph/.github/blob/main/TEMPLATES.md).
+- **Registry version badge** in README — PyPI and Registry versions
+  are visible side-by-side so any drift between publishing surfaces
+  is immediately apparent.
+- `server.json` (`io.github.qso-graph/netlogger-mcp`).
+
 ## 0.1.0 (2026-09-28)
 
 - Tools for every documented NetLogger API 1.3 call: active nets, live check-ins with the pointer,
