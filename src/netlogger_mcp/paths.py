@@ -21,6 +21,11 @@ def config_dir() -> Path:
     return base / "netlogger-mcp"
 
 
+def cache_file() -> Path:
+    """Answers every copy on this computer shares."""
+    return config_dir() / "cache.json"
+
+
 def limits_file() -> Path:
     """The call budget every copy on this computer shares."""
     return config_dir() / "limits.json"

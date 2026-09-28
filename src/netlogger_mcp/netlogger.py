@@ -20,6 +20,7 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from typing import Any, Callable
 from xml.etree.ElementTree import Element
 
@@ -27,8 +28,8 @@ from defusedxml.ElementTree import fromstring
 
 from . import __version__
 from .contract import BOOL_FIELDS, CHECKIN_FIELDS, INT_FIELDS, NET_FIELDS, TIME_FIELDS
-from .limiter import Cache, RateLimiter, SharedRateLimiter
-from .paths import limits_file
+from .limiter import Cache, RateLimiter, SharedCache, SharedRateLimiter
+from .paths import cache_file, limits_file
 
 log = logging.getLogger("netlogger_mcp")
 
@@ -292,6 +293,11 @@ def _urllib_fetch(agent: str) -> Fetch:
     return fetch
 
 
+def as_of_utc() -> str:
+    """The time of an answer (or an error), ISO 8601 UTC."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _retry_after(header: str | None) -> float:
     try:
         seconds = float(header) if header else 0.0
@@ -315,7 +321,7 @@ class NetLoggerSource:
         program_version: str | None = None,
         fetch: Fetch | None = None,
         limiter: RateLimiter | SharedRateLimiter | None = None,
-        cache: Cache | None = None,
+        cache: Cache | SharedCache | None = None,
     ) -> None:
         """``callsign``: the station using it (required). ``program_id`` and
         ``program_version``: the app built on this library, as in ADIF's
@@ -325,7 +331,8 @@ class NetLoggerSource:
         self._fetch = fetch or _urllib_fetch(self.user_agent)
         # By default every copy on this computer shares one budget (one station).
         self._limiter = limiter or SharedRateLimiter(LIMITS, limits_file())
-        self._cache = cache or Cache()
+        # ... and their answers, so a copy that's out of budget can use another's.
+        self._cache = cache or SharedCache(cache_file())
         self._inflight = threading.Lock()  # one request at a time
 
     def _call(self, routine: str, params: dict[str, str], cache_key: str) -> tuple[Parsed | Any, dict[str, Any]]:
@@ -385,7 +392,7 @@ class NetLoggerSource:
         if isinstance(value, Parsed):
             value = build(value)
             self._cache.set(key, value, TTL[routine])
-        return value, info
+        return value, {"as_of_utc": as_of_utc(), **info}
 
     # ------------------------------------------------------------------
     # The four documented calls
@@ -396,13 +403,18 @@ class NetLoggerSource:
         any number of filters cost one GetActiveNets call a minute."""
         name_like = _text(name_like, "name_like", 64, required=False)
         nets, info = self._fetch_cached("GetActiveNets", {}, "active", lambda p: p.nets())
+        # Every server NetLogger listed, before the filter, so an empty answer explains itself.
+        counts: dict[str, int] = {}
+        for n in nets:
+            counts[n.get("server", "")] = counts.get(n.get("server", ""), 0) + 1
+        servers = [{"server": s, "nets": c} for s, c in sorted(counts.items())]
         if name_like:
             needle = name_like.casefold()
             nets = [
                 n for n in nets
                 if needle in n.get("name", "").casefold() or needle in n.get("current_name", "").casefold()
             ]
-        return {"source": SOURCE, "total": len(nets), "nets": nets, **info}
+        return {"source": SOURCE, "total": len(nets), "nets": nets, "servers": servers, **info}
 
     def checkins(self, server_name: str, net_name: str) -> dict[str, Any]:
         """A live net's check-in list, with the pointer (the station up now)."""
