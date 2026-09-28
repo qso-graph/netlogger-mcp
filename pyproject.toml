@@ -38,6 +38,10 @@ Issues = "https://github.com/qso-graph/netlogger-mcp/issues"
 [project.scripts]
 netlogger-mcp = "netlogger_mcp.server:main"
 
+
+[dependency-groups]
+dev = ["pytest>=8", "jsonschema"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
