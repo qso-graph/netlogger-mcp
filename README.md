@@ -13,7 +13,7 @@ checked in, who's up now, and what past nets logged.
 - **Private details stay out.** Street addresses, ZIP codes and IP addresses in NetLogger's data
   have no place in the contract, so they never reach an AI, a program or a user.
 
-Status: in development (0.1.0, not yet on PyPI).
+Status: 0.1.0, first release.
 
 ## Tools
 
@@ -60,7 +60,7 @@ account on the same computer has its own folder, and its own callsign. The rules
 ## Install
 
 ```bash
-pip install netlogger-mcp   # once released
+pip install netlogger-mcp
 ```
 
 Claude Code / Claude Desktop:
