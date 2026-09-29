@@ -1,0 +1,170 @@
+{
+ "_source": "ADIF 3.1.7 Band enumeration (https://adif.org.uk/317/ADIF_317.htm#Band_Enumeration), copied unchanged. The ADIF specification is the work of the ADIF Developers Group.",
+ "bands": [
+  {
+   "band": "2190m",
+   "lower_mhz": ".1357",
+   "upper_mhz": ".1378"
+  },
+  {
+   "band": "630m",
+   "lower_mhz": ".472",
+   "upper_mhz": ".479"
+  },
+  {
+   "band": "560m",
+   "lower_mhz": ".501",
+   "upper_mhz": ".504"
+  },
+  {
+   "band": "160m",
+   "lower_mhz": "1.8",
+   "upper_mhz": "2.0"
+  },
+  {
+   "band": "80m",
+   "lower_mhz": "3.5",
+   "upper_mhz": "4.0"
+  },
+  {
+   "band": "60m",
+   "lower_mhz": "5.06",
+   "upper_mhz": "5.45"
+  },
+  {
+   "band": "40m",
+   "lower_mhz": "7.0",
+   "upper_mhz": "7.3"
+  },
+  {
+   "band": "30m",
+   "lower_mhz": "10.1",
+   "upper_mhz": "10.15"
+  },
+  {
+   "band": "20m",
+   "lower_mhz": "14.0",
+   "upper_mhz": "14.35"
+  },
+  {
+   "band": "17m",
+   "lower_mhz": "18.068",
+   "upper_mhz": "18.168"
+  },
+  {
+   "band": "15m",
+   "lower_mhz": "21.0",
+   "upper_mhz": "21.45"
+  },
+  {
+   "band": "12m",
+   "lower_mhz": "24.890",
+   "upper_mhz": "24.99"
+  },
+  {
+   "band": "10m",
+   "lower_mhz": "28.0",
+   "upper_mhz": "29.7"
+  },
+  {
+   "band": "8m",
+   "lower_mhz": "40",
+   "upper_mhz": "45"
+  },
+  {
+   "band": "6m",
+   "lower_mhz": "50",
+   "upper_mhz": "54"
+  },
+  {
+   "band": "5m",
+   "lower_mhz": "54.000001",
+   "upper_mhz": "69.9"
+  },
+  {
+   "band": "4m",
+   "lower_mhz": "70",
+   "upper_mhz": "71"
+  },
+  {
+   "band": "2m",
+   "lower_mhz": "144",
+   "upper_mhz": "148"
+  },
+  {
+   "band": "1.25m",
+   "lower_mhz": "222",
+   "upper_mhz": "225"
+  },
+  {
+   "band": "70cm",
+   "lower_mhz": "420",
+   "upper_mhz": "450"
+  },
+  {
+   "band": "33cm",
+   "lower_mhz": "902",
+   "upper_mhz": "928"
+  },
+  {
+   "band": "23cm",
+   "lower_mhz": "1240",
+   "upper_mhz": "1300"
+  },
+  {
+   "band": "13cm",
+   "lower_mhz": "2300",
+   "upper_mhz": "2450"
+  },
+  {
+   "band": "9cm",
+   "lower_mhz": "3300",
+   "upper_mhz": "3500"
+  },
+  {
+   "band": "6cm",
+   "lower_mhz": "5650",
+   "upper_mhz": "5925"
+  },
+  {
+   "band": "3cm",
+   "lower_mhz": "10000",
+   "upper_mhz": "10500"
+  },
+  {
+   "band": "1.25cm",
+   "lower_mhz": "24000",
+   "upper_mhz": "24250"
+  },
+  {
+   "band": "6mm",
+   "lower_mhz": "47000",
+   "upper_mhz": "47200"
+  },
+  {
+   "band": "4mm",
+   "lower_mhz": "75500",
+   "upper_mhz": "81000"
+  },
+  {
+   "band": "2.5mm",
+   "lower_mhz": "119980",
+   "upper_mhz": "123000"
+  },
+  {
+   "band": "2mm",
+   "lower_mhz": "134000",
+   "upper_mhz": "149000"
+  },
+  {
+   "band": "1mm",
+   "lower_mhz": "241000",
+   "upper_mhz": "250000"
+  },
+  {
+   "band": "submm",
+   "lower_mhz": "300000",
+   "upper_mhz": "7500000"
+  }
+ ]
+}

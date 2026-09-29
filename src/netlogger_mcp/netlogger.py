@@ -30,6 +30,7 @@ from . import __version__
 from .contract import BOOL_FIELDS, CHECKIN_FIELDS, INT_FIELDS, NET_FIELDS, TIME_FIELDS
 from .limiter import Cache, RateLimiter, SharedCache, SharedRateLimiter
 from .paths import cache_file, limits_file
+from .radio import read_band_and_frequency
 
 log = logging.getLogger("netlogger_mcp")
 
@@ -230,6 +231,7 @@ class Parsed:
             for net in server.iter("Net"):
                 rec = {"source": SOURCE, "server": server_name}
                 rec.update(_record(net, NET_FIELDS, self.utc))
+                rec.update(read_band_and_frequency(rec.get("band"), rec.get("frequency")))
                 nets.append(rec)
         return nets
 
@@ -265,10 +267,9 @@ class Parsed:
             "checkin_count": len(checkins),
             "pointer": pointer,
             "pointer_callsign": at_pointer["callsign"] if at_pointer else None,
+            "empty_slots": sorted(empty),
             "checkins": checkins,
         }
-        if empty:
-            result["empty_slots"] = sorted(empty)
         if count is not None and count != len(checkins):
             result["source_checkin_count"] = count  # NetLogger's own figure, empty slots included
         if not checkins and self.error:

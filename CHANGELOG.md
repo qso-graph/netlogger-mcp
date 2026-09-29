@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.4 (2026-09-29)
+
+From Patton's live run of 0.1.3:
+
+- `empty_slots` is always present on a check-in list (`[]` when there are none).
+- Nets gain read values beside NetLogger's free text, each only when it can be read reliably
+  (#16): `frequency_mhz`, `band_adif` (ADIF 3.1.7's Band enumeration, shipped unchanged in
+  `adif_band.json`), `tone_hz` and `talkgroup`. A readable frequency decides the band, so a GMRS
+  net labelled "70cm" gets no amateur band, and "DMR" (a mode) is never a band. The raw `band` and
+  `frequency` are unchanged.
+- README: an answer was fetched at `as_of_utc` minus `age_seconds`.
+
 ## 0.1.3 (2026-09-29)
 
 From Patton's test on a live net (OMISS 40m, #19):

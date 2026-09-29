@@ -87,7 +87,7 @@ class TestCalls:
             "source": "netlogger", "server": "NETLOGGER2", "name": "OMISS 80m SSB Net",
             "current_name": "OMISS 80m SSB Net", "frequency": "3.825", "band": "80m", "mode": "SSB",
             "net_control": "KI7MT", "logger": "KI7MT - v3.1.7", "opened": "2026-09-28T01:15:00Z",
-            "monitoring": 21,
+            "monitoring": 21, "frequency_mhz": 3.825, "band_adif": "80m",
         }
         assert fake.urls == ["https://www.netlogger.org/api/GetActiveNets.php"]
 
@@ -481,5 +481,5 @@ class TestEmptySlotsAndPointer:
 
     def test_clean_list_has_no_extra_fields(self, nl):
         r = nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
-        assert "empty_slots" not in r and "source_checkin_count" not in r
+        assert r["empty_slots"] == [] and "source_checkin_count" not in r
         assert r["pointer_callsign"] == "N0CALL"
