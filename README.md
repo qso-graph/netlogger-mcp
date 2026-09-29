@@ -52,11 +52,16 @@ NetLogger is a donation-funded service on one server, and it limits how often ea
 | **One budget per user** | Every copy you run (Claude Desktop, Claude Code, a script) shares one budget, through a locked file beside `settings.json`. |
 | **Shared answers** | Every copy also shares the answers it fetched, so a copy that has hit the limit gets another copy's recent answer, with its age, instead of an error. |
 | **Response caching** | Active nets 60 s, check-ins 20 s, past nets 60 s, past check-ins 1 hour. Filtering by name costs no extra calls. |
+| **How old an answer is** | Every answer has `as_of_utc` (when it was given) and `age_seconds` (how old the data is), so it was fetched at `as_of_utc` minus `age_seconds`. |
 | **Stale answers over errors** | When a limit is reached, the last answer comes back with its age rather than a new request. |
 | **429 back-off** | A "too many requests" on any call stops all calls for at least a minute, longer if NetLogger asks. |
 | **Past-net windows** | More than 7 days of past nets needs a name filter, NetLogger's rule to protect its server. |
 | **Request timeout** | 15-second timeout. |
 | **User-Agent header** | Every request names this project and your callsign, so NetLogger's operators can see who is asking. |
+
+## Bands and Frequencies
+
+NetLogger's band and frequency are whatever the logger typed ("40M", "75M", "DMR", "7033", "3918 KHz", "147.030 91.5", "TG 3141"). They're returned as typed, and beside them, only when the text can be read reliably: `frequency_mhz`, `band_adif` (the ADIF band, from ADIF 3.1.7's Band enumeration), `tone_hz` and `talkgroup`. A frequency outside the amateur bands (e.g. GMRS) gets no `band_adif`.
 
 ## Privacy
 
@@ -208,4 +213,4 @@ uv run pytest
 
 ## License
 
-GPL-3.0-or-later
+GPL-3.0-or-later. `adif_band.json` is the ADIF 3.1.7 Band enumeration, the work of the ADIF Developers Group ([adif.org.uk](https://adif.org.uk/)), included unchanged.

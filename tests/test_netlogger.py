@@ -87,7 +87,7 @@ class TestCalls:
             "source": "netlogger", "server": "NETLOGGER2", "name": "OMISS 80m SSB Net",
             "current_name": "OMISS 80m SSB Net", "frequency": "3.825", "band": "80m", "mode": "SSB",
             "net_control": "KI7MT", "logger": "KI7MT - v3.1.7", "opened": "2026-09-28T01:15:00Z",
-            "monitoring": 21,
+            "monitoring": 21, "frequency_mhz": 3.825, "band_adif": "80m",
         }
         assert fake.urls == ["https://www.netlogger.org/api/GetActiveNets.php"]
 
@@ -445,7 +445,7 @@ class TestProgramId:
 
 
 # ---------------------------------------------------------------------------
-# Empty slots and the pointer (#19): from a live OMISS net, 2026-09-29
+# Pending rows and the pointer (#19): from a live OMISS net, 2026-09-29
 # ---------------------------------------------------------------------------
 
 def _live_list(pointer: int, rows: list[tuple[int, str | None]], count: int) -> bytes:
@@ -460,19 +460,19 @@ def _live_list(pointer: int, rows: list[tuple[int, str | None]], count: int) -> 
     ).encode()
 
 
-class TestEmptySlotsAndPointer:
-    def test_empty_slots_are_not_checkins(self, clock):
+class TestPendingRowsAndPointer:
+    def test_pending_rows_are_not_checkins(self, clock):
         body = _live_list(3, [(1, "KC9RRN"), (2, "W7RSO"), (3, "KG5JIM"), (21, None), (24, "W2EUA"), (25, None)], 6)
         nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
                              cache=Cache(clock=clock))
         r = nl.checkins("NETLOGGER2", "OMISS 40m SSB Net")
         assert [c["callsign"] for c in r["checkins"]] == ["KC9RRN", "W7RSO", "KG5JIM", "W2EUA"]
         assert r["checkin_count"] == 4
-        assert r["empty_slots"] == [21, 25]
+        assert r["pending_serials"] == [21, 25]
         assert r["source_checkin_count"] == 6  # NetLogger's own figure, kept for reference
         assert r["pointer"] == 3 and r["pointer_callsign"] == "KG5JIM"
 
-    def test_pointer_on_an_empty_slot_names_no_one(self, clock):
+    def test_pointer_on_a_pending_row_names_no_one(self, clock):
         body = _live_list(21, [(1, "KC9RRN"), (21, None)], 2)
         nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
                              cache=Cache(clock=clock))
@@ -481,5 +481,5 @@ class TestEmptySlotsAndPointer:
 
     def test_clean_list_has_no_extra_fields(self, nl):
         r = nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
-        assert "empty_slots" not in r and "source_checkin_count" not in r
+        assert r["pending_serials"] == [] and "source_checkin_count" not in r
         assert r["pointer_callsign"] == "N0CALL"
