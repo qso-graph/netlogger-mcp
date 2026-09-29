@@ -12,9 +12,9 @@ from fastmcp import FastMCP
 
 from . import __contract_version__, __spec_version__, __version__
 from . import settings
-from .limiter import Cache, RateLimiter, SharedRateLimiter
-from .netlogger import LIMITS, NetLoggerError, NetLoggerSource
-from .paths import limits_file
+from .limiter import Cache, RateLimiter, SharedCache, SharedRateLimiter
+from .netlogger import LIMITS, NetLoggerError, NetLoggerSource, as_of_utc
+from .paths import cache_file, limits_file
 
 mcp = FastMCP(
     "netlogger-mcp",
@@ -44,11 +44,19 @@ _source: NetLoggerSource | None = None
 # other copy on this computer through a file; mock mode keeps its own, so a test
 # run never spends the real budget.
 _limiter: RateLimiter | SharedRateLimiter | None = None
-_cache = Cache()
+# Answers are shared the same way (mock mode keeps its own).
+_cache: Cache | SharedCache | None = None
 
 
 def _mock() -> bool:
     return os.getenv("NETLOGGER_MCP_MOCK") == "1"
+
+
+def _get_cache() -> Cache | SharedCache:
+    global _cache
+    if _cache is None:
+        _cache = Cache() if _mock() else SharedCache(cache_file())
+    return _cache
 
 
 def _get_limiter() -> RateLimiter | SharedRateLimiter:
@@ -80,7 +88,7 @@ def _get_source() -> NetLoggerSource:
             raise NeedsCallsign
         _source = NetLoggerSource(
             callsign, fetch=_mock_fetch if _mock() else None,
-            limiter=_get_limiter(), cache=_cache,
+            limiter=_get_limiter(), cache=_get_cache(),
         )
     return _source
 
@@ -89,11 +97,11 @@ def _run(method: str, *args) -> dict[str, Any]:
     try:
         return getattr(_get_source(), method)(*args)
     except NeedsCallsign:
-        return dict(NEEDS_CALLSIGN)
+        return {**NEEDS_CALLSIGN, "as_of_utc": as_of_utc()}
     except NetLoggerError as e:
-        return {"error": str(e)}
+        return {"error": str(e), "as_of_utc": as_of_utc()}
     except Exception:
-        return {"error": "netlogger-mcp hit an unexpected problem"}
+        return {"error": "netlogger-mcp hit an unexpected problem", "as_of_utc": as_of_utc()}
 
 
 def _version_info_payload() -> dict[str, Any]:

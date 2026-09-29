@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.2 (2026-09-29)
+
+From Patton's cold test of omiss-mcp 0.1.1 (#17):
+
+- **Shared answers.** Every copy on the computer already shared the call budget; now it also shares
+  the answers it fetched (`cache.json` beside `limits.json`, under the same kind of lock). A copy
+  that has reached a limit gets the newest answer any copy fetched, with its real `age_seconds`,
+  instead of an error. If the file can't be used, the copy keeps its own cache; the limits never
+  depend on it.
+- `as_of_utc` on every response, errors included.
+- Active nets list every server NetLogger returned and its net count (`servers`), before any name
+  filter, so an empty answer explains itself.
+- Records contract 0.2.
+
 ## 0.1.1 (2026-09-28)
 
 - README rewritten in the qso-graph layout, about NetLogger only: tools, callsign, Good Neighbour

@@ -28,6 +28,7 @@ def config(tmp_path, monkeypatch):
     monkeypatch.delenv("NETLOGGER_MCP_CALLSIGN", raising=False)
     server._source = None
     server._limiter = None
+    server._cache = None
     yield tmp_path
     server._source = None
     server._limiter = None
@@ -56,7 +57,7 @@ def test_version_info():
     r = call("get_version_info")
     assert r["service_name"] == "netlogger-mcp"
     assert r["spec_version"] == "netlogger-xml-api-1.3"
-    assert r["contract_version"] == "0.1"
+    assert r["contract_version"] == "0.2"
 
 
 # First use: ask once, remember

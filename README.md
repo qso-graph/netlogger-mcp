@@ -50,6 +50,7 @@ NetLogger is a donation-funded service on one server, and it limits how often ea
 |---------|--------|
 | **NetLogger's call limits** | GetActiveNets 1/min, GetCheckins 3/min, GetPastNets 1/min, GetPastNetCheckins 10/min. Checked before a request is sent, never after. |
 | **One budget per user** | Every copy you run (Claude Desktop, Claude Code, a script) shares one budget, through a locked file beside `settings.json`. |
+| **Shared answers** | Every copy also shares the answers it fetched, so a copy that has hit the limit gets another copy's recent answer, with its age, instead of an error. |
 | **Response caching** | Active nets 60 s, check-ins 20 s, past nets 60 s, past check-ins 1 hour. Filtering by name costs no extra calls. |
 | **Stale answers over errors** | When a limit is reached, the last answer comes back with its age rather than a new request. |
 | **429 back-off** | A "too many requests" on any call stops all calls for at least a minute, longer if NetLogger asks. |

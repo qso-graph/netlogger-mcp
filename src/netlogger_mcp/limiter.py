@@ -280,3 +280,88 @@ class Cache:
             self._data[key] = (self._clock(), ttl, value)
             while len(self._data) > self._max:
                 del self._data[next(iter(self._data))]  # oldest first
+
+
+class SharedCache:
+    """The same cache, shared by every process the user runs.
+
+    The call budget is shared, so when one copy has spent it another copy is
+    refused a call. Sharing the answers too means that copy gets the answer
+    the first one fetched, with its real age, instead of an error.
+
+    Answers live in a JSON file beside the call-limit file, read and written
+    under a lock the operating system enforces between processes. Ages use the
+    wall clock. If the file can't be used, this process carries on with its own
+    in-memory cache (answers are an optimisation; the limits never depend on
+    them) and logs why.
+    """
+
+    def __init__(
+        self,
+        path: Path | str,
+        max_entries: int = 64,
+        max_bytes: int = 2 * 1024 * 1024,
+        clock: Callable[[], float] = time.time,
+    ) -> None:
+        self._path = Path(path)
+        self._lock_path = self._path.with_suffix(".lock")
+        self._max = max_entries
+        self._max_bytes = max_bytes
+        self._clock = clock
+        self._thread_lock = threading.Lock()
+        self._local = Cache(max_entries, clock)
+        self._warned = False
+
+    def _warn(self, error: Exception) -> None:
+        if not self._warned:
+            log.warning("can't share cached answers through %s (%s); this process keeps its own", self._path, error)
+            self._warned = True
+
+    def _read(self) -> dict[str, list]:
+        try:
+            data = json.loads(self._path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return {}
+        if not isinstance(data, dict):
+            return {}
+        # key -> [stored, ttl, value]; anything else is dropped
+        return {
+            k: v for k, v in data.items()
+            if isinstance(v, list) and len(v) == 3
+            and isinstance(v[0], (int, float)) and isinstance(v[1], (int, float))
+        }
+
+    def get(self, key: str) -> tuple[Any, float, bool] | None:
+        """Return (value, age in seconds, fresh), or None. The newest of this
+        process's answer and any other copy's."""
+        mine = self._local.get(key)
+        try:
+            with self._thread_lock, _file_lock(self._lock_path):
+                entry = self._read().get(key)
+        except (OSError, ValueError) as e:
+            self._warn(e)
+            return mine
+        if entry is None:
+            return mine
+        stored, ttl, value = entry
+        age = max(0.0, self._clock() - stored)
+        if mine is not None and mine[1] <= age:
+            return mine
+        return value, age, age < ttl
+
+    def set(self, key: str, value: Any, ttl: float) -> None:
+        self._local.set(key, value, ttl)
+        try:
+            with self._thread_lock, _file_lock(self._lock_path):
+                data = self._read()
+                data.pop(key, None)
+                data[key] = [self._clock(), ttl, value]
+                text = json.dumps(data)
+                while data and (len(data) > self._max or len(text) > self._max_bytes):
+                    del data[next(iter(data))]  # oldest first
+                    text = json.dumps(data)
+                tmp = self._path.with_suffix(".tmp")
+                tmp.write_text(text, encoding="utf-8")
+                os.replace(tmp, self._path)
+        except (OSError, ValueError, TypeError) as e:
+            self._warn(e)
