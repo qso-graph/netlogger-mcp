@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.3 (2026-09-29)
+
+From Patton's test on a live net (OMISS 40m, #19):
+
+- **Empty slots aren't check-ins.** A list row with no callsign is left out of `checkins` and
+  `checkin_count`, and its serial is listed in `empty_slots`. NetLogger's own count, which includes
+  them, is kept as `source_checkin_count` when it differs.
+- **`pointer_callsign`**: the station at the pointer, from the same answer. NetLogger renumbers
+  serials as the logger edits the list, so a serial can't be matched across calls.
+
 ## 0.1.2 (2026-09-29)
 
 From Patton's cold test of omiss-mcp 0.1.1 (#17):
