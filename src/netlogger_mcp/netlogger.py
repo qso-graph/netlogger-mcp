@@ -235,13 +235,18 @@ class Parsed:
 
     def checkins(self) -> dict[str, Any]:
         cl = self.checkin_list
-        checkins = []
+        checkins, empty = [], []
         pointer = count = None
         if cl is not None:
             for c in cl.iter("Checkin"):
                 rec = {"source": SOURCE}
                 rec.update(_record(c, CHECKIN_FIELDS, self.utc))
-                checkins.append(rec)
+                if rec.get("callsign"):
+                    checkins.append(rec)
+                elif "serial" in rec:
+                    # A slot on the logger's list with no station in it (e.g. a
+                    # deleted or not-yet-filled row): not a check-in.
+                    empty.append(rec["serial"])
             for tag in ("Pointer", "CheckinCount"):
                 text = _child_text(cl, tag)
                 try:
@@ -253,11 +258,19 @@ class Parsed:
                 else:
                     count = value
         checkins.sort(key=lambda r: r.get("serial", 0))
+        # Serials are renumbered as the logger edits the list, so the station at
+        # the pointer is named here, from the same answer.
+        at_pointer = next((c for c in checkins if pointer is not None and c.get("serial") == pointer), None)
         result = {
-            "checkin_count": count if count is not None else len(checkins),
+            "checkin_count": len(checkins),
             "pointer": pointer,
+            "pointer_callsign": at_pointer["callsign"] if at_pointer else None,
             "checkins": checkins,
         }
+        if empty:
+            result["empty_slots"] = sorted(empty)
+        if count is not None and count != len(checkins):
+            result["source_checkin_count"] = count  # NetLogger's own figure, empty slots included
         if not checkins and self.error:
             result["message"] = self.error  # e.g. no such net, or the net has closed
         return result

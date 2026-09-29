@@ -442,3 +442,44 @@ class TestProgramId:
     def test_rejected(self, program_id, version):
         with pytest.raises(NetLoggerError, match="program"):
             NetLoggerSource("KI7MT", program_id=program_id, program_version=version)
+
+
+# ---------------------------------------------------------------------------
+# Empty slots and the pointer (#19): from a live OMISS net, 2026-09-29
+# ---------------------------------------------------------------------------
+
+def _live_list(pointer: int, rows: list[tuple[int, str | None]], count: int) -> bytes:
+    checkins = "".join(
+        f"<Checkin><SerialNo>{s}</SerialNo>" + (f"<Callsign>{c}</Callsign>" if c else "<Callsign/>") + "</Checkin>"
+        for s, c in rows
+    )
+    return (
+        "<NetLoggerXML><Header><TimeZone>UTC</TimeZone></Header><CheckinList>"
+        f"<ResponseCode>200 OK</ResponseCode><CheckinCount>{count}</CheckinCount><Pointer>{pointer}</Pointer>"
+        f"{checkins}</CheckinList></NetLoggerXML>"
+    ).encode()
+
+
+class TestEmptySlotsAndPointer:
+    def test_empty_slots_are_not_checkins(self, clock):
+        body = _live_list(3, [(1, "KC9RRN"), (2, "W7RSO"), (3, "KG5JIM"), (21, None), (24, "W2EUA"), (25, None)], 6)
+        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
+                             cache=Cache(clock=clock))
+        r = nl.checkins("NETLOGGER2", "OMISS 40m SSB Net")
+        assert [c["callsign"] for c in r["checkins"]] == ["KC9RRN", "W7RSO", "KG5JIM", "W2EUA"]
+        assert r["checkin_count"] == 4
+        assert r["empty_slots"] == [21, 25]
+        assert r["source_checkin_count"] == 6  # NetLogger's own figure, kept for reference
+        assert r["pointer"] == 3 and r["pointer_callsign"] == "KG5JIM"
+
+    def test_pointer_on_an_empty_slot_names_no_one(self, clock):
+        body = _live_list(21, [(1, "KC9RRN"), (21, None)], 2)
+        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
+                             cache=Cache(clock=clock))
+        r = nl.checkins("NETLOGGER2", "OMISS 40m SSB Net")
+        assert r["pointer"] == 21 and r["pointer_callsign"] is None
+
+    def test_clean_list_has_no_extra_fields(self, nl):
+        r = nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
+        assert "empty_slots" not in r and "source_checkin_count" not in r
+        assert r["pointer_callsign"] == "N0CALL"

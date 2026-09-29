@@ -180,7 +180,7 @@ from netlogger_mcp.netlogger import NetLoggerSource
 nl = NetLoggerSource(callsign="KI7MT")
 for net in nl.active_nets()["nets"]:
     live = nl.checkins(net["server"], net["name"])
-    print(net["name"], "up now:", live["pointer"])
+    print(net["name"], "up now:", live["pointer_callsign"])
 ```
 
 Apps can also name themselves, using ADIF's `PROGRAMID` and `PROGRAMVERSION`: `NetLoggerSource(callsign="KI7MT", program_id="MyLogger", program_version="1.0")`.

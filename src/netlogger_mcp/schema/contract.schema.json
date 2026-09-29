@@ -253,7 +253,7 @@
             "integer",
             "null"
           ],
-          "description": "Serial number of the station being worked now (live nets)"
+          "description": "Serial number of the station being worked now (live nets). Serials are renumbered as the logger edits the list, so match on pointer_callsign, not on the serial across calls"
         },
         "message": {
           "type": "string"
@@ -263,6 +263,25 @@
           "items": {
             "$ref": "#/$defs/checkin"
           }
+        },
+        "pointer_callsign": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Callsign of the check-in at the pointer, from the same answer"
+        },
+        "empty_slots": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "description": "Serials of list slots with no station in them; not counted as check-ins"
+        },
+        "source_checkin_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "NetLogger's own count, when it differs from checkin_count (it includes empty slots)"
         }
       },
       "required": [

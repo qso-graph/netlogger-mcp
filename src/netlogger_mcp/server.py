@@ -173,7 +173,9 @@ def netlogger_checkins(server_name: str, net_name: str) -> dict[str, Any]:
 
     Returns:
         Check-ins in list order with callsign, name, location, grid, status and
-        remarks; the check-in count; and the pointer.
+        remarks; the check-in count; the pointer and pointer_callsign (the station
+        up now). Serials are renumbered as the list is edited, so use
+        pointer_callsign rather than matching a serial across calls.
     """
     return _run("checkins", server_name, net_name)
 
