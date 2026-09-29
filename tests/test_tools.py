@@ -57,7 +57,7 @@ def test_version_info():
     r = call("get_version_info")
     assert r["service_name"] == "netlogger-mcp"
     assert r["spec_version"] == "netlogger-xml-api-1.3"
-    assert r["contract_version"] == "0.2"
+    assert r["contract_version"] == "0.3"
 
 
 # First use: ask once, remember
@@ -141,3 +141,10 @@ def test_past_checkins(with_callsign):
 def test_bad_input_is_an_error_result_not_a_crash(with_callsign):
     r = call("netlogger_checkins", {"server_name": "bad name!", "net_name": "x"})
     assert "error" in r and "server_name" in r["error"]
+
+
+def test_help_and_version_exit_without_serving(capsys, monkeypatch):
+    for arg, expect in (("--help", "usage: netlogger-mcp"), ("-h", "usage: netlogger-mcp"), ("--version", "netlogger-mcp ")):
+        monkeypatch.setattr("sys.argv", ["netlogger-mcp", arg])
+        server.main()  # returns instead of serving
+        assert expect in capsys.readouterr().out

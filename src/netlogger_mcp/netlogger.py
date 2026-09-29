@@ -237,7 +237,7 @@ class Parsed:
 
     def checkins(self) -> dict[str, Any]:
         cl = self.checkin_list
-        checkins, empty = [], []
+        checkins, pending = [], []
         pointer = count = None
         if cl is not None:
             for c in cl.iter("Checkin"):
@@ -246,9 +246,10 @@ class Parsed:
                 if rec.get("callsign"):
                     checkins.append(rec)
                 elif "serial" in rec:
-                    # A slot on the logger's list with no station in it (e.g. a
-                    # deleted or not-yet-filled row): not a check-in.
-                    empty.append(rec["serial"])
+                    # A row net control has opened but not filled in yet (the
+                    # callsign is typed after): a station being entered, not yet
+                    # a check-in.
+                    pending.append(rec["serial"])
             for tag in ("Pointer", "CheckinCount"):
                 text = _child_text(cl, tag)
                 try:
@@ -267,11 +268,11 @@ class Parsed:
             "checkin_count": len(checkins),
             "pointer": pointer,
             "pointer_callsign": at_pointer["callsign"] if at_pointer else None,
-            "empty_slots": sorted(empty),
+            "pending_serials": sorted(pending),
             "checkins": checkins,
         }
         if count is not None and count != len(checkins):
-            result["source_checkin_count"] = count  # NetLogger's own figure, empty slots included
+            result["source_checkin_count"] = count  # NetLogger's own figure, pending rows included
         if not checkins and self.error:
             result["message"] = self.error  # e.g. no such net, or the net has closed
         return result

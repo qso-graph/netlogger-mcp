@@ -322,17 +322,17 @@
           ],
           "description": "Callsign of the check-in at the pointer, from the same answer"
         },
-        "empty_slots": {
+        "source_checkin_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "NetLogger's own count, when it differs from checkin_count (it includes pending rows)"
+        },
+        "pending_serials": {
           "type": "array",
           "items": {
             "type": "integer"
           },
-          "description": "Serials of list slots with no station in them; not counted as check-ins"
-        },
-        "source_checkin_count": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "NetLogger's own count, when it differs from checkin_count (it includes empty slots)"
+          "description": "Serials of rows net control has opened but not filled in yet (a station being entered). Not counted as check-ins; call again to see them filled"
         }
       },
       "required": [

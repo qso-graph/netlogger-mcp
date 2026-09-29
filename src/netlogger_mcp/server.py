@@ -210,8 +210,22 @@ def netlogger_past_checkins(server_name: str, net_name: str, net_id: str) -> dic
     return _run("past_checkins", server_name, net_name, net_id)
 
 
+USAGE = """usage: netlogger-mcp [--transport stdio|streamable-http] [--port N] [--version] [--help]
+
+An MCP server: an AI app (Claude Desktop, Claude Code, ...) starts it and talks
+to it over stdio. Run on its own it waits for that app; press Ctrl-C to stop.
+Set up a client: https://github.com/qso-graph/netlogger-mcp#quick-start
+"""
+
+
 def main() -> None:
     """Run the netlogger-mcp server."""
+    if any(a in ("-h", "--help") for a in sys.argv[1:]):
+        print(USAGE, end="")
+        return
+    if "--version" in sys.argv[1:]:
+        print(f"netlogger-mcp {__version__}")
+        return
     transport = "stdio"
     port = 8014
     for i, arg in enumerate(sys.argv[1:], 1):

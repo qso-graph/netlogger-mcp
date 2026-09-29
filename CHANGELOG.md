@@ -4,12 +4,16 @@
 
 From Patton's live run of 0.1.3:
 
-- `empty_slots` is always present on a check-in list (`[]` when there are none).
+- **Renamed `empty_slots` to `pending_serials`** (contract 0.3). Watson watched the NetLogger program
+  during the net: those rows are ones net control has opened and not filled in yet (the callsign is
+  typed after), so they're stations being entered, not empty. Always present, `[]` when there are
+  none; still not counted as check-ins. Call again to see them filled in.
 - Nets gain read values beside NetLogger's free text, each only when it can be read reliably
   (#16): `frequency_mhz`, `band_adif` (ADIF 3.1.7's Band enumeration, shipped unchanged in
   `adif_band.json`), `tone_hz` and `talkgroup`. A readable frequency decides the band, so a GMRS
   net labelled "70cm" gets no amateur band, and "DMR" (a mode) is never a band. The raw `band` and
   `frequency` are unchanged.
+- `--help` and `--version` print and exit (the server used to start and wait for a client).
 - README: an answer was fetched at `as_of_utc` minus `age_seconds`.
 
 ## 0.1.3 (2026-09-29)
