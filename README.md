@@ -12,7 +12,6 @@ Data from NetLogger's public XML Data Service (API 1.3). Part of the [qso-graph]
 
 ```bash
 uvx netlogger-mcp            # run it; nothing to install
-pip install netlogger-mcp    # or install it into your own environment
 ```
 
 ## Tools
@@ -160,8 +159,6 @@ Add to `~/.gemini/settings.json` (global) or `.gemini/settings.json` (project):
   }
 }
 ```
-
-Installed with pip instead? Use `"command": "netlogger-mcp"` in any config above.
 
 ### Ask questions
 
