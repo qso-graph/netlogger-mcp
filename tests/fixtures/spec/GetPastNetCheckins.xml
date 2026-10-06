@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic sample in the shape of the NetLogger API 1.3 spec. Not real data. -->
+<NetLoggerXML>
+<Header>
+<CreationDateUTC>Mon 09/28/2026 01:33:00</CreationDateUTC>
+<Copyright>The NetLogger System 2026</Copyright>
+<APIVersion>1.3.1</APIVersion>
+<TimeZone>UTC</TimeZone>
+</Header>
+<CheckinList>
+<ServerName>NETLOGGER2</ServerName>
+<NetName>OMISS 80m SSB Net</NetName>
+<ResponseCode>200 OK</ResponseCode>
+<CheckinCount>1</CheckinCount>
+<Checkin>
+<SerialNo>1</SerialNo>
+<Callsign>KI7MT</Callsign>
+<State>ID</State>
+<FirstName>GREG</FirstName>
+<Status>(c/o)</Status>
+<Grid>DN13</Grid>
+<Street>456 Sample Road</Street>
+<Zip>88888</Zip>
+<MemberID>7212</MemberID>
+<Country>United States</Country>
+<DXCC>291</DXCC>
+</Checkin>
+</CheckinList>
+</NetLoggerXML>

@@ -1,29 +1,376 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Synthetic sample in the shape of the NetLogger API 1.3 spec. Not real data. -->
 <NetLoggerXML>
-<Header>
-<CreationDateUTC>Mon 09/28/2026 01:33:00</CreationDateUTC>
-<Copyright>The NetLogger System 2026</Copyright>
-<APIVersion>1.3.1</APIVersion>
-<TimeZone>UTC</TimeZone>
-</Header>
-<CheckinList>
-<ServerName>NETLOGGER2</ServerName>
-<NetName>OMISS 80m SSB Net</NetName>
-<ResponseCode>200 OK</ResponseCode>
-<CheckinCount>1</CheckinCount>
-<Checkin>
-<SerialNo>1</SerialNo>
-<Callsign>KI7MT</Callsign>
-<State>ID</State>
-<FirstName>GREG</FirstName>
-<Status>(c/o)</Status>
-<Grid>DN13</Grid>
-<Street>456 Sample Road</Street>
-<Zip>88888</Zip>
-<MemberID>7212</MemberID>
-<Country>United States</Country>
-<DXCC>291</DXCC>
-</Checkin>
-</CheckinList>
+ <Header>
+  <CreationDateUTC>Tue 10/06/2026 17:05:21</CreationDateUTC>
+  <Copyright>The NetLogger System 2026</Copyright>
+  <APIVersion>1.3.1</APIVersion>
+  <TimeZone>UTC</TimeZone>
+ </Header>
+ <CheckinList>
+  <ServerName>NETLOGGER</ServerName>
+  <NetName>Pacific RV Service Net</NetName>
+  <ResponseCode>200 OK</ResponseCode>
+  <CheckinCount>20</CheckinCount>
+  <Pointer>21</Pointer>
+  <Checkin>
+   <SerialNo>1</SerialNo>
+   <Callsign>K8CALL</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Lakeside County</CityCountry>
+   <FirstName>Vic U Adams</FirstName>
+   <Status> </Status>
+   <County>Greenville County</County>
+   <Grid>DM04</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Wes</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>2</SerialNo>
+   <Callsign>K7TEST</Callsign>
+   <State>OR</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Oakdale</CityCountry>
+   <FirstName>Alan W Owens</FirstName>
+   <Status> </Status>
+   <County>Milton</County>
+   <Grid>CN72</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Betty</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>3</SerialNo>
+   <Callsign>K8TEST</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Ashland</CityCountry>
+   <FirstName>Carl Y Irwin</FirstName>
+   <Status> </Status>
+   <County>Clayton</County>
+   <Grid>CM88</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Dora</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>4</SerialNo>
+   <Callsign>K9TEST</Callsign>
+   <State>CA</State>
+   <Remarks>remark text</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Dayton County</CityCountry>
+   <FirstName>Evan A Clark</FirstName>
+   <Status> </Status>
+   <County>Easton County</County>
+   <Grid>DM14</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States of America</Country>
+   <DXCC> </DXCC>
+   <PreferredName>Faye</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>5</SerialNo>
+   <Callsign>W0TEST</Callsign>
+   <State>NV</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Franklin</CityCountry>
+   <FirstName>Glen C Quinn</FirstName>
+   <Status> </Status>
+   <County>Springfield</County>
+   <Grid>DM09</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Hope</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>6</SerialNo>
+   <Callsign>W1TEST</Callsign>
+   <State>NV</State>
+   <Remarks> </Remarks>
+   <QSLInfo>QSL info text</QSLInfo>
+   <CityCountry>Riverton</CityCountry>
+   <FirstName>Ivan E Keller</FirstName>
+   <Status> </Status>
+   <County>Fairview</County>
+   <Grid>DN11</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States of America</Country>
+   <DXCC> </DXCC>
+   <PreferredName>June</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>7</SerialNo>
+   <Callsign>W2TEST</Callsign>
+   <State>NV</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Lakeside</CityCountry>
+   <FirstName>Kurt G Evans</FirstName>
+   <Status> </Status>
+   <County>Greenville</County>
+   <Grid>DM09</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Lena</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>8</SerialNo>
+   <Callsign>W3TEST</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Oakdale County</CityCountry>
+   <FirstName>Mark I Stone</FirstName>
+   <Status> </Status>
+   <County>Milton County</County>
+   <Grid>CM87</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Nora</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>9</SerialNo>
+   <Callsign>W4TEST</Callsign>
+   <State>OR</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Ashland County</CityCountry>
+   <FirstName>Nora J Foster</FirstName>
+   <Status> </Status>
+   <County>Clayton</County>
+   <Grid>CN92</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Owen</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>10</SerialNo>
+   <Callsign>W7CALL</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo>QSL info text</QSLInfo>
+   <CityCountry>Dayton County</CityCountry>
+   <FirstName>Pam L Turner</FirstName>
+   <Status> </Status>
+   <County>Easton</County>
+   <Grid>CM97</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Rex</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>11</SerialNo>
+   <Callsign>W5TEST</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Franklin County</CityCountry>
+   <FirstName>Sue N Nolan</FirstName>
+   <Status> </Status>
+   <County>Springfield</County>
+   <Grid>CM88</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Ted</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>12</SerialNo>
+   <Callsign>W6TEST</Callsign>
+   <State>AZ</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo>QSL info text</QSLInfo>
+   <CityCountry>Riverton</CityCountry>
+   <FirstName>Uma P Hayes</FirstName>
+   <Status> </Status>
+   <County>Fairview</County>
+   <Grid>DM42</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Betty</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>13</SerialNo>
+   <Callsign>W7TEST</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Lakeside</CityCountry>
+   <FirstName>Vic Owens</FirstName>
+   <Status> </Status>
+   <County>Greenville</County>
+   <Grid>CM89</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Wes</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>14</SerialNo>
+   <Callsign>W8TEST</Callsign>
+   <State>ID</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Oakdale County</CityCountry>
+   <FirstName>Alan S Irwin</FirstName>
+   <Status> </Status>
+   <County>Oakdale County</County>
+   <Grid>DN43</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Betty</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>15</SerialNo>
+   <Callsign>W9TEST</Callsign>
+   <State>TX</State>
+   <Remarks> </Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Milton County</CityCountry>
+   <FirstName>Carl U Clark</FirstName>
+   <Status> </Status>
+   <County>Ashland</County>
+   <Grid>DM09</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States of America</Country>
+   <DXCC> </DXCC>
+   <PreferredName>Dora</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>16</SerialNo>
+   <Callsign>N0FAKE</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo>QSL info text</QSLInfo>
+   <CityCountry>Clayton</CityCountry>
+   <FirstName>Evan W Quinn</FirstName>
+   <Status> </Status>
+   <County>Dayton</County>
+   <Grid>CM96</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Faye</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>17</SerialNo>
+   <Callsign>K9CALL</Callsign>
+   <State>WA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo>QSL info text</QSLInfo>
+   <CityCountry>Easton</CityCountry>
+   <FirstName>Glen Y Keller</FirstName>
+   <Status> </Status>
+   <County>Easton</County>
+   <Grid>DN17</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Hope</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>18</SerialNo>
+   <Callsign>N1FAKE</Callsign>
+   <State>OR</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Franklin County</CityCountry>
+   <FirstName>Ivan A Evans</FirstName>
+   <Status> </Status>
+   <County>Springfield</County>
+   <Grid>CN85</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>June</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>19</SerialNo>
+   <Callsign>N2FAKE</Callsign>
+   <State>MT</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Riverton</CityCountry>
+   <FirstName>Kurt C Stone</FirstName>
+   <Status> </Status>
+   <County>Fairview</County>
+   <Grid>DM57</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Lena</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>20</SerialNo>
+   <Callsign>N3FAKE</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Lakeside</CityCountry>
+   <FirstName>Mark E Moore</FirstName>
+   <Status> </Status>
+   <County>Springfield</County>
+   <Grid>CM88</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Nora</PreferredName>
+  </Checkin>
+ </CheckinList>
 </NetLoggerXML>

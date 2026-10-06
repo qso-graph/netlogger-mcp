@@ -1,36 +1,450 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Synthetic sample in the shape of the NetLogger API 1.3 spec. Not real data;
-     the srcIP is a documentation address and must never appear in output. -->
 <NetLoggerXML>
-<Header>
-<CreationDateUTC>Mon 09/28/2026 01:32:00</CreationDateUTC>
-<Copyright>The NetLogger System 2026</Copyright>
-<APIVersion>1.3.1</APIVersion>
-<TimeZone>UTC</TimeZone>
-</Header>
-<ServerList>
-<ResponseCode>200 OK</ResponseCode>
-<Server>
-<ServerName>NETLOGGER2</ServerName>
-<Net>
-<NetID>987654</NetID>
-<NetName>OMISS 80m SSB Net</NetName>
-<AltNetName>OMISS 80m SSB Net</AltNetName>
-<Frequency>3.825</Frequency>
-<Logger>KI7MT - v3.1.7</Logger>
-<NetControl>KI7MT</NetControl>
-<Date>2026-09-27 01:15:00</Date>
-<Mode>SSB</Mode>
-<Band>80m</Band>
-<AIM>Y</AIM>
-<UpdateInterval>20000</UpdateInterval>
-<srcIP>192.0.2.10</srcIP>
-<LastActivity>2026-09-27 03:10:00</LastActivity>
-<InactivitytTimer>30</InactivitytTimer>
-<MiscNetParameters></MiscNetParameters>
-<ClosedAt>2026-09-27 03:12:00</ClosedAt>
-<Assassinated>N</Assassinated>
-</Net>
-</Server>
-</ServerList>
+ <Header>
+  <CreationDateUTC>Tue 10/06/2026 17:07:40</CreationDateUTC>
+  <Copyright>The NetLogger System 2026</Copyright>
+  <APIVersion>1.3.1</APIVersion>
+  <TimeZone>UTC</TimeZone>
+ </Header>
+ <ServerList>
+  <ResponseCode>200 OK</ResponseCode>
+  <Server>
+   <ServerName>NETLOGGER</ServerName>
+   <ServerPastNetCount>303</ServerPastNetCount>
+   <Net>
+    <NetID>440529</NetID>
+    <NetName>Pacific RV Service Net</NetName>
+    <Frequency>7272.0</Frequency>
+    <Logger>K8CALL-PAUL - v3.1.5W</Logger>
+    <NetControl>K8CALL</NetControl>
+    <Date>2026-10-06 16:45:09</Date>
+    <Mode>SSB</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.1</srcIP>
+    <LastActivity>2026-10-06 16:59:58</LastActivity>
+    <AltNetName>Pacific RV Service Net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 17:05:22</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440525</NetID>
+    <NetName>Pacific Coast RVSN - K9CALL</NetName>
+    <Frequency>7.272</Frequency>
+    <Logger>K9CALL-NEIL - v3.1.7W</Logger>
+    <NetControl>K9CALL</NetControl>
+    <Date>2026-10-06 16:39:40</Date>
+    <Mode>LSB</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.2</srcIP>
+    <LastActivity>2026-10-06 16:44:00</LastActivity>
+    <AltNetName>Pacific Coast RVSN - K9CALL</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 16:44:19</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440528</NetID>
+    <NetName>Propagation Group Roundtable</NetName>
+    <Frequency>18165.000 KHz</Frequency>
+    <Logger>W0CALL-MARC - v3.1.7W</Logger>
+    <NetControl>W0CALL</NetControl>
+    <Date>2026-10-06 16:20:32</Date>
+    <Mode>USB</Mode>
+    <Band>17m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.3</srcIP>
+    <LastActivity>2026-10-06 17:03:40</LastActivity>
+    <AltNetName>Propagation Group Roundtable</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 17:04:25</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440526</NetID>
+    <NetName>1899khz Mid-day Propagation Test</NetName>
+    <Frequency>1899 KHz</Frequency>
+    <Logger>W2CALL-DEX - v3.1.7W</Logger>
+    <NetControl>W1CALL</NetControl>
+    <Date>2026-10-06 16:20:01</Date>
+    <Mode>SSB/CW</Mode>
+    <Band>160m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.4</srcIP>
+    <LastActivity>2026-10-06 16:47:18</LastActivity>
+    <AltNetName>1899khz Mid-day Propagation Test</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 16:58:00</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440527</NetID>
+    <NetName>RV RADIO NETWORK 20 METER NET</NetName>
+    <Frequency>14.272</Frequency>
+    <Logger>W3CALL-GEORGE - v3.1.7M</Logger>
+    <NetControl>W3CALL</NetControl>
+    <Date>2026-10-06 16:04:01</Date>
+    <Mode>SSB</Mode>
+    <Band>20M</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.5</srcIP>
+    <LastActivity>2026-10-06 16:57:51</LastActivity>
+    <AltNetName>RV RADIO NETWORK 20 METER NET</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 16:58:33</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440522</NetID>
+    <NetName>noontime pocono net</NetName>
+    <Frequency>50450.00</Frequency>
+    <Logger>W4CALL-BOB - v3.1.7W</Logger>
+    <NetControl>W4CALL</NetControl>
+    <Date>2026-10-06 15:49:32</Date>
+    <Mode>SSB</Mode>
+    <Band>6m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.6</srcIP>
+    <LastActivity>2026-10-06 16:13:53</LastActivity>
+    <AltNetName>noontime pocono net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 16:16:59</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440524</NetID>
+    <NetName>DO NOTHING NET</NetName>
+    <Frequency>7278</Frequency>
+    <Logger>W5CALL-AJ - v3.1.7W</Logger>
+    <NetControl>W5CALL</NetControl>
+    <Date>2026-10-06 15:44:59</Date>
+    <Mode>SSB</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.7</srcIP>
+    <LastActivity>2026-10-06 16:30:27</LastActivity>
+    <AltNetName>DO NOTHING NET</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 16:36:16</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440518</NetID>
+    <NetName>Early Bird</NetName>
+    <Frequency>7185.50</Frequency>
+    <Logger>W7CALL-K LAWRENCE - v3.1.7W</Logger>
+    <NetControl>W6CALL</NetControl>
+    <Date>2026-10-06 14:51:13</Date>
+    <Mode>SSB</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.8</srcIP>
+    <LastActivity>2026-10-06 15:22:09</LastActivity>
+    <AltNetName>Early Bird</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 15:27:39</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440510</NetID>
+    <NetName>Early checkins for  CRACK BARREL</NetName>
+    <Frequency>7.185.5</Frequency>
+    <Logger>W7CALL-K LAWRENCE - v3.1.7W</Logger>
+    <NetControl>W7CALL</NetControl>
+    <Date>2026-10-06 14:35:30</Date>
+    <Mode>SSB</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.9</srcIP>
+    <LastActivity>2026-10-06 14:35:30</LastActivity>
+    <AltNetName>Early checkins for  CRACK BARREL</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 14:35:48</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440515</NetID>
+    <NetName>Trivaloney</NetName>
+    <Frequency>14240</Frequency>
+    <Logger>W8CALL-DOUG - v3.1.7W</Logger>
+    <NetControl>W8CALL</NetControl>
+    <Date>2026-10-06 14:05:53</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.10</srcIP>
+    <LastActivity>2026-10-06 14:54:30</LastActivity>
+    <AltNetName>Trivaloney</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 14:56:20</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440509</NetID>
+    <NetName>CRACKER BARREL NET</NetName>
+    <Frequency>7.18550</Frequency>
+    <Logger>N0TEST-PAUL MCTEE - v3.1.7M</Logger>
+    <NetControl>W9CALL</NetControl>
+    <Date>2026-10-06 13:58:05</Date>
+    <Mode>SSB</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.11</srcIP>
+    <LastActivity>2026-10-06 14:29:37</LastActivity>
+    <AltNetName>CRACKER BARREL NET</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 14:31:36</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440516</NetID>
+    <NetName>Tue DRE Net 35C w Duff</NetName>
+    <Frequency>REF 35C</Frequency>
+    <Logger>N2TEST-DUFF - v3.1.7W</Logger>
+    <NetControl>N1TEST</NetControl>
+    <Date>2026-10-06 13:44:12</Date>
+    <Mode>Dstar</Mode>
+    <Band>70cm</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.12</srcIP>
+    <LastActivity>2026-10-06 15:00:48</LastActivity>
+    <AltNetName>Tue DRE Net 35C w Duff</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 15:03:24</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440514</NetID>
+    <NetName>N4TEST GRUMPY NET  (Echolink 2!)</NetName>
+    <Frequency>146.97</Frequency>
+    <Logger>N3TEST-RALPH - v3.1.5W</Logger>
+    <NetControl>N3TEST</NetControl>
+    <Date>2026-10-06 13:33:46</Date>
+    <Mode>FM</Mode>
+    <Band>2m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.13</srcIP>
+    <LastActivity>2026-10-06 14:50:51</LastActivity>
+    <AltNetName>N4TEST GRUMPY NET  (Echolink 2!)</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 14:55:45</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>440511</NetID>
+    <NetName>Canadian-American Net</NetName>
+    <Frequency>7.153</Frequency>
+    <Logger>N6TEST-RICK - v3.1.7W</Logger>
+    <NetControl>N5TEST</NetControl>
+    <Date>2026-10-06 13:10:33</Date>
+    <Mode>SSB/CW</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.14</srcIP>
+    <LastActivity>2026-10-06 14:45:21</LastActivity>
+    <AltNetName>Canadian-American Net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 14:45:42</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   </Server>
+  <Server>
+   <ServerName>NETLOGGER1</ServerName>
+   <ServerPastNetCount>0</ServerPastNetCount>
+  </Server>
+  <Server>
+   <ServerName>NETLOGGER2</ServerName>
+   <ServerPastNetCount>5</ServerPastNetCount>
+   <Net>
+    <NetID>21099</NetID>
+    <NetName>OMISS 80m SSB Net</NetName>
+    <Frequency>3.825</Frequency>
+    <Logger>N7TEST-MIKEY - v3.1.7W</Logger>
+    <NetControl>N7TEST</NetControl>
+    <Date>2026-10-06 02:29:35</Date>
+    <Mode>SSB</Mode>
+    <Band>80m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.15</srcIP>
+    <LastActivity>2026-10-06 03:43:28</LastActivity>
+    <AltNetName>OMISS 80m SSB Net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 03:50:33</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>21097</NetID>
+    <NetName>OMISS 20m SSB Net</NetName>
+    <Frequency>14. 290</Frequency>
+    <Logger>N8TEST-HANK - v3.1.7W</Logger>
+    <NetControl>N8TEST</NetControl>
+    <Date>2026-10-05 17:31:11</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.16</srcIP>
+    <LastActivity>2026-10-05 20:32:56</LastActivity>
+    <AltNetName>OMISS 20m SSB Net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-05 20:36:59</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   </Server>
+  <Server>
+   <ServerName>NETLOGGER3</ServerName>
+   <ServerPastNetCount>18</ServerPastNetCount>
+   <Net>
+    <NetID>90764</NetID>
+    <NetName>YYLSYSTEM FIRST PERIOD</NetName>
+    <Frequency>N9TEST</Frequency>
+    <Logger>N9TEST-JEFF - v3.1.7W</Logger>
+    <NetControl>N9TEST</NetControl>
+    <Date>2026-10-06 13:41:56</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.17</srcIP>
+    <LastActivity>2026-10-06 15:59:14</LastActivity>
+    <AltNetName>YYLSYSTEM FIRST PERIOD</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 16:01:32</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>90763</NetID>
+    <NetName>YLSYSTEM SUNRISE</NetName>
+    <Frequency>14.332</Frequency>
+    <Logger>K1TEST-GENE - v3.1.7W</Logger>
+    <NetControl>K0TEST</NetControl>
+    <Date>2026-10-06 11:32:22</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.18</srcIP>
+    <LastActivity>2026-10-06 14:01:48</LastActivity>
+    <AltNetName>YLSYSTEM SUNRISE</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 14:02:10</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>90760</NetID>
+    <NetName>3905 75m SSB Late Net</NetName>
+    <Frequency>3.905</Frequency>
+    <Logger>K2TEST-CARY - v3.1.7W</Logger>
+    <NetControl>K2TEST</NetControl>
+    <Date>2026-10-06 04:45:18</Date>
+    <Mode>SSB</Mode>
+    <Band>75m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.19</srcIP>
+    <LastActivity>2026-10-06 04:59:28</LastActivity>
+    <AltNetName>3905 75m SSB Late Net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 05:10:59</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>90756</NetID>
+    <NetName>3905 40m CW Early Net</NetName>
+    <Frequency>7.045</Frequency>
+    <Logger>K3TEST-RICH - v3.1.7W</Logger>
+    <NetControl>K3TEST</NetControl>
+    <Date>2026-10-06 00:43:52</Date>
+    <Mode>CW</Mode>
+    <Band>40m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.20</srcIP>
+    <LastActivity>2026-10-06 01:05:19</LastActivity>
+    <AltNetName>3905 40m CW Early Net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-06 01:09:32</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>90753</NetID>
+    <NetName>3905 10m Test Net</NetName>
+    <Frequency>28.305</Frequency>
+    <Logger>K4TEST-CHRIS - v3.1.7W</Logger>
+    <NetControl>K4TEST</NetControl>
+    <Date>2026-10-05 18:50:34</Date>
+    <Mode>JT65</Mode>
+    <Band>10m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.21</srcIP>
+    <LastActivity>2026-10-05 20:05:28</LastActivity>
+    <AltNetName>3905 10m Test Net</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-05 20:15:56</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   <Net>
+    <NetID>90752</NetID>
+    <NetName>YL SYSTEM THIRD PERIOD</NetName>
+    <Frequency>14.332.00</Frequency>
+    <Logger>K6TEST-JIM - v3.1.7W</Logger>
+    <NetControl>K5TEST</NetControl>
+    <Date>2026-10-05 17:27:05</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <AIM>Y</AIM>
+    <UpdateInterval>20000</UpdateInterval>
+    <srcIP>192.0.2.22</srcIP>
+    <LastActivity>2026-10-05 20:01:06</LastActivity>
+    <AltNetName>YL SYSTEM THIRD PERIOD</AltNetName>
+    <InactivityTimer>30</InactivityTimer>
+    <MiscNetParameters />
+    <ClosedAt>2026-10-05 20:02:52</ClosedAt>
+    <Assassinated>N</Assassinated>
+   </Net>
+   </Server>
+  <Server>
+   <ServerName>NETLOGGER4</ServerName>
+   <ServerPastNetCount>0</ServerPastNetCount>
+  </Server>
+ </ServerList>
 </NetLoggerXML>

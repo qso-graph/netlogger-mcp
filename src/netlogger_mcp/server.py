@@ -33,7 +33,8 @@ mcp = FastMCP(
 
 
 def _mock_fetch(url: str) -> tuple[int, bytes, str | None]:
-    """NETLOGGER_MCP_MOCK=1: answer from the bundled synthetic samples, never the network."""
+    """NETLOGGER_MCP_MOCK=1: answer from the bundled samples (real NetLogger responses,
+    anonymized), never the network."""
     routine = urllib.parse.urlparse(url).path.rsplit("/", 1)[-1].removesuffix(".php")
     return 200, files("netlogger_mcp.samples").joinpath(f"{routine}.xml").read_bytes(), None
 

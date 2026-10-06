@@ -1,55 +1,214 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Synthetic sample in the shape of the NetLogger API 1.3 spec. Not real data;
-     the street, ZIP and names are invented, and must never appear in output. -->
 <NetLoggerXML>
-<Header>
-<CreationDateUTC>Mon 09/28/2026 01:31:00</CreationDateUTC>
-<Copyright>The NetLogger System 2026</Copyright>
-<APIVersion>1.3.1</APIVersion>
-<TimeZone>UTC</TimeZone>
-<Warning>Sample warning for the developer</Warning>
-</Header>
-<CheckinList>
-<ServerName>NETLOGGER2</ServerName>
-<NetName>OMISS 80m SSB Net</NetName>
-<ResponseCode>200 OK</ResponseCode>
-<CheckinCount>2</CheckinCount>
-<Pointer>2</Pointer>
-<Checkin>
-<SerialNo>2</SerialNo>
-<Callsign>N0CALL</Callsign>
-<State>MN</State>
-<Remarks>mobile</Remarks>
-<QSLInfo>LOTW</QSLInfo>
-<CityCountry>Exampleton</CityCountry>
-<FirstName>PAT</FirstName>
-<Status>(m)</Status>
-<County>EXAMPLE</County>
-<Grid>EN34</Grid>
-<Street>123 Example Street</Street>
-<Zip>99999</Zip>
-<MemberID>1234</MemberID>
-<Country>United States</Country>
-<DXCC>291</DXCC>
-<PreferredName/>
-</Checkin>
-<Checkin>
-<SerialNo>1</SerialNo>
-<Callsign>KI7MT</Callsign>
-<State>ID</State>
-<Remarks></Remarks>
-<QSLInfo>LOTW</QSLInfo>
-<CityCountry>Boise</CityCountry>
-<FirstName>GREG</FirstName>
-<Status> </Status>
-<County>ADA</County>
-<Grid>DN13</Grid>
-<Street>456 Sample Road</Street>
-<Zip>88888</Zip>
-<MemberID>7212</MemberID>
-<Country>United States</Country>
-<DXCC>291</DXCC>
-<PreferredName>Greg</PreferredName>
-</Checkin>
-</CheckinList>
+ <Header>
+  <CreationDateUTC>Tue 10/06/2026 17:07:39</CreationDateUTC>
+  <Copyright>The NetLogger System 2026</Copyright>
+  <APIVersion>1.3.1</APIVersion>
+  <TimeZone>UTC</TimeZone>
+ </Header>
+ <CheckinList>
+  <ServerName>NETLOGGER</ServerName>
+  <NetName>Alaska morning net</NetName>
+  <ResponseCode>200 OK</ResponseCode>
+  <CheckinCount>11</CheckinCount>
+  <Pointer>5</Pointer>
+  <Checkin>
+   <SerialNo>1</SerialNo>
+   <Callsign>N0CALL</Callsign>
+   <State>OR</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Springfield</CityCountry>
+   <FirstName>Alan A Adams</FirstName>
+   <Status>(nc),(log)</Status>
+   <County>Riverton</County>
+   <Grid>CN85</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Betty</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>2</SerialNo>
+   <Callsign>N9CALL</Callsign>
+   <State>AL</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Fairview</CityCountry>
+   <FirstName>Carl C Owens</FirstName>
+   <Status> </Status>
+   <County>Fairview</County>
+   <Grid>EM63</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Dora</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>3</SerialNo>
+   <Callsign>K0CALL</Callsign>
+   <State>TX</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Lakeside</CityCountry>
+   <FirstName>Evan E Irwin</FirstName>
+   <Status> </Status>
+   <County>Greenville</County>
+   <Grid>EL29</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Faye</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>4</SerialNo>
+   <Callsign>K1CALL</Callsign>
+   <State>TN</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Oakdale</CityCountry>
+   <FirstName>Glen G Clark</FirstName>
+   <Status> </Status>
+   <County>Milton</County>
+   <Grid>EM55</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Hope</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>5</SerialNo>
+   <Callsign>K2CALL</Callsign>
+   <State>TX</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Ashland</CityCountry>
+   <FirstName>Ivan I Quinn</FirstName>
+   <Status>(m)</Status>
+   <County>Greenville</County>
+   <Grid>EL29</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>June</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>6</SerialNo>
+   <Callsign>K3CALL</Callsign>
+   <State>CA</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Clayton</CityCountry>
+   <FirstName>Kurt K Keller</FirstName>
+   <Status> </Status>
+   <County>Dayton</County>
+   <Grid>DM05</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Lena</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>7</SerialNo>
+   <Callsign>K4CALL</Callsign>
+   <State>TX</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Lakeside</CityCountry>
+   <FirstName>Mark Evans</FirstName>
+   <Status> </Status>
+   <County>Greenville</County>
+   <Grid>EL29</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Nora</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>8</SerialNo>
+   <Callsign>K5CALL</Callsign>
+   <State>FL</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo>QSL info text</QSLInfo>
+   <CityCountry>Easton</CityCountry>
+   <FirstName>Owen O Stone</FirstName>
+   <Status> </Status>
+   <County>Franklin</County>
+   <Grid>EL87</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Pam</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>9</SerialNo>
+   <Callsign>K6CALL</Callsign>
+   <State>KY</State>
+   <Remarks>(remark text)</Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry>Springfield County</CityCountry>
+   <FirstName>Rex Q Moore</FirstName>
+   <Status> </Status>
+   <County>Riverton</County>
+   <Grid>EM67</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>United States</Country>
+   <DXCC>291</DXCC>
+   <PreferredName>Sue</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>13</SerialNo>
+   <Callsign>K7CALL</Callsign>
+   <State> </State>
+   <Remarks>remark text</Remarks>
+   <QSLInfo>QSL info text</QSLInfo>
+   <CityCountry>Fairview County</CityCountry>
+   <FirstName>Ted Grant</FirstName>
+   <Status>(c/o)</Status>
+   <County> </County>
+   <Grid>IO83</Grid>
+   <Street>1 Test Street</Street>
+   <Zip>00000</Zip>
+   <MemberID> </MemberID>
+   <Country>England</Country>
+   <DXCC>223</DXCC>
+   <PreferredName>Uma</PreferredName>
+  </Checkin>
+  <Checkin>
+   <SerialNo>20</SerialNo>
+   <Callsign> </Callsign>
+   <State> </State>
+   <Remarks> </Remarks>
+   <QSLInfo> </QSLInfo>
+   <CityCountry> </CityCountry>
+   <FirstName> </FirstName>
+   <Status> </Status>
+   <County> </County>
+   <Grid> </Grid>
+   <Street> </Street>
+   <Zip> </Zip>
+   <MemberID> </MemberID>
+   <Country> </Country>
+   <DXCC> </DXCC>
+   <PreferredName> </PreferredName>
+  </Checkin>
+ </CheckinList>
 </NetLoggerXML>
