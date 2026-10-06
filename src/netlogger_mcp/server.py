@@ -158,6 +158,11 @@ def netlogger_active_nets(name_like: str | None = "") -> dict[str, Any]:
     Returns:
         Nets with server, name, frequency, band, mode, net control, logger, when
         opened, and how many are monitoring. Use server and name with netlogger_checkins.
+        total counts the nets returned (after name_like); servers counts every net
+        NetLogger listed per server, before the filter, so an empty answer explains
+        itself. band_adif comes from a readable frequency; otherwise the logger's band
+        counts only if it is an ADIF band name, so a net given by talkgroup (e.g. DMR)
+        has none.
     """
     return _run("active_nets", name_like or "")
 
@@ -175,7 +180,9 @@ def netlogger_checkins(server_name: str, net_name: str) -> dict[str, Any]:
         Check-ins in list order with callsign, name, location, grid, status and
         remarks; the check-in count; the pointer and pointer_callsign (the station
         up now). Serials are renumbered as the list is edited, so use
-        pointer_callsign rather than matching a serial across calls.
+        pointer_callsign rather than matching a serial across calls. Rows with no
+        callsign are not check-ins: the logger's own notes (e.g. "NET START: 01:00")
+        are in log_notes, and empty rows still being filled in are in pending_serials.
     """
     return _run("checkins", server_name, net_name)
 

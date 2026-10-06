@@ -57,7 +57,7 @@ def test_version_info():
     r = call("get_version_info")
     assert r["service_name"] == "netlogger-mcp"
     assert r["spec_version"] == "netlogger-xml-api-1.3"
-    assert r["contract_version"] == "0.3"
+    assert r["contract_version"] == "0.4"
 
 
 # First use: ask once, remember

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/qso-graph/netlogger-mcp/schema/contract.schema.json",
-  "title": "Net-logging records, contract 0.1",
+  "title": "Net-logging records, contract 0.4",
   "description": "What every netlogger-mcp tool returns. A source maps onto these fields and nothing else; additionalProperties is false so a private field (street address, ZIP code, IP address) can never pass through. Times are ISO 8601 UTC when the source says UTC.",
   "$defs": {
     "source": {
@@ -325,7 +325,7 @@
         "source_checkin_count": {
           "type": "integer",
           "minimum": 0,
-          "description": "NetLogger's own count, when it differs from checkin_count (it includes pending rows)"
+          "description": "NetLogger's own count, when it differs from checkin_count (it includes pending and note rows)"
         },
         "pending_serials": {
           "type": "array",
@@ -333,6 +333,13 @@
             "type": "integer"
           },
           "description": "Serials of rows net control has opened but not filled in yet (a station being entered). Not counted as check-ins; call again to see them filled"
+        },
+        "log_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The logger's own notes: rows with no callsign but text in the member ID or remarks (e.g. NET START: 01:00), without the leading '# #'. Not check-ins"
         }
       },
       "required": [
