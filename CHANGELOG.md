@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.1.6 (2026-10-06)
+
+- **Tested against real NetLogger responses** (#15). The bundled samples (mock mode) are now one
+  real response per routine, captured within NetLogger's published rates and anonymized by
+  `scripts/anonymize_samples.py`: callsigns, names, places and remarks replaced (callsigns with
+  N0CALL-style ones), grids cut to 4 characters, street, ZIP and source IP set to test values. The
+  earlier synthetic samples move to `tests/fixtures/spec/`, kept for what the real responses didn't
+  show (a `<Warning>`, a non-UTC time zone, an unknown element, club member IDs).
+- **The parser held up**: no behaviour change was needed. What the real responses showed, now
+  pinned by `tests/test_real_responses.py`:
+  - the server sends `InactivityTimer` (the spec also spells it `InactivitytTimer`; both are read);
+  - past nets list their elements in a different order from the spec (order doesn't matter here);
+  - no `<Warning>` in any header;
+  - `MemberID` is present but empty on nets that aren't a club's;
+  - role markers as sent: `(nc),(log)`, `(m)`, `(c/o)`;
+  - free-text frequencies (`all`, `REF 35C`, `7.185.5`, `14. 290`, even a callsign) are kept as sent
+    and not read as a frequency;
+  - an empty net control, and a closed net's pointer one past its last row.
+
 ## 0.1.5 (2026-10-06)
 
 - **Note rows aren't pending rows** (#24). A row with no callsign but text in its member ID or

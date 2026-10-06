@@ -1,47 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Synthetic sample in the shape of the NetLogger API 1.3 spec. Not real data. -->
 <NetLoggerXML>
-<Header>
-<CreationDateUTC>Mon 09/28/2026 01:30:00</CreationDateUTC>
-<Copyright>The NetLogger System 2026</Copyright>
-<APIVersion>1.3.1</APIVersion>
-<TimeZone>UTC</TimeZone>
-</Header>
-<ServerList>
-<ResponseCode>200 OK</ResponseCode>
-<Server>
-<ServerName>NETLOGGER</ServerName>
-<ServerActiveNetCount>2</ServerActiveNetCount>
-<Net>
-<NetName>Example County ARES Net</NetName>
-<AltNetName>Example County ARES Net</AltNetName>
-<Frequency>146.520</Frequency>
-<Logger>N0CALL - v3.1.7</Logger>
-<NetControl>N0CALL</NetControl>
-<Date>2026-09-28 01:00:00</Date>
-<Mode>FM</Mode>
-<Band>2m</Band>
-<SubscriberCount>4</SubscriberCount>
-</Net>
-</Server>
-<Server>
-<ServerName>NETLOGGER2</ServerName>
-<ServerActiveNetCount>1</ServerActiveNetCount>
-<Net>
-<NetName>OMISS 80m SSB Net</NetName>
-<AltNetName>OMISS 80m SSB Net</AltNetName>
-<Frequency>3.825</Frequency>
-<Logger>KI7MT - v3.1.7</Logger>
-<NetControl>KI7MT</NetControl>
-<Date>2026-09-28 01:15:00</Date>
-<Mode>SSB</Mode>
-<Band>80m</Band>
-<SubscriberCount>21</SubscriberCount>
-<SomeFutureElement>ignored</SomeFutureElement>
-</Net>
-</Server>
-<Server>
-<ServerName>NetLogger3</ServerName>
-</Server>
-</ServerList>
+ <Header>
+  <CreationDateUTC>Tue 10/06/2026 17:07:39</CreationDateUTC>
+  <Copyright>The NetLogger System 2026</Copyright>
+  <APIVersion>1.3.1</APIVersion>
+  <TimeZone>UTC</TimeZone>
+ </Header>
+ <ServerList>
+  <ResponseCode>200 OK</ResponseCode>
+  <Server>
+   <ServerName>NETLOGGER</ServerName>
+   <ServerActiveNetCount>6</ServerActiveNetCount>
+   <Net>
+    <NetName>Alaska morning net</NetName>
+    <AltNetName>Alaska morning net</AltNetName>
+    <Frequency>all</Frequency>
+    <Logger>N0CALL-DAVE - v3.1.7W</Logger>
+    <NetControl>N0CALL</NetControl>
+    <Date>2026-10-06 16:42:19</Date>
+    <Mode>FM</Mode>
+    <Band>2m</Band>
+    <SubscriberCount>5</SubscriberCount>
+   </Net>
+   <Net>
+    <NetName>California Hawaii Net</NetName>
+    <AltNetName>California Hawaii Net</AltNetName>
+    <Frequency>14.340</Frequency>
+    <Logger>N2CALL-CARL - v3.1.7W</Logger>
+    <NetControl>N1CALL</NetControl>
+    <Date>2026-10-06 15:25:41</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <SubscriberCount>11</SubscriberCount>
+   </Net>
+   <Net>
+    <NetName>N4CALL Morning Net</NetName>
+    <AltNetName>N4CALL Morning Net</AltNetName>
+    <Frequency>146.655</Frequency>
+    <Logger>N3CALL-BOB - v3.1.7W</Logger>
+    <NetControl>N3CALL</NetControl>
+    <Date>2026-10-06 12:57:49</Date>
+    <Mode>FM</Mode>
+    <Band>2m</Band>
+    <SubscriberCount>1</SubscriberCount>
+   </Net>
+   <Net>
+    <NetName>Ohana Net 10-06-26</NetName>
+    <AltNetName>Ohana Net 10-06-26</AltNetName>
+    <Frequency>14.268</Frequency>
+    <Logger>N5CALL - v3.1.7W</Logger>
+    <NetControl> </NetControl>
+    <Date>2026-10-06 16:00:38</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <SubscriberCount>6</SubscriberCount>
+   </Net>
+   <Net>
+    <NetName>RCWA Boredom Breaker (w AllStar)</NetName>
+    <AltNetName>RCWA Boredom Breaker (w AllStar)</AltNetName>
+    <Frequency>147.090</Frequency>
+    <Logger>N6CALL-DR.GREG - v3.1.7W</Logger>
+    <NetControl>N6CALL</NetControl>
+    <Date>2026-10-06 16:52:19</Date>
+    <Mode>FM</Mode>
+    <Band>2m</Band>
+    <SubscriberCount>6</SubscriberCount>
+   </Net>
+   <Net>
+    <NetName>Stir Crazy Net</NetName>
+    <AltNetName>Stir Crazy Net</AltNetName>
+    <Frequency>146.880</Frequency>
+    <Logger>N7CALL-MONTY - v3.1.7W</Logger>
+    <NetControl>N7CALL</NetControl>
+    <Date>2026-10-06 16:47:45</Date>
+    <Mode>FM</Mode>
+    <Band>2m</Band>
+    <SubscriberCount>2</SubscriberCount>
+   </Net>
+  </Server>
+  <Server>
+   <ServerName>NETLOGGER1</ServerName>
+   <ServerActiveNetCount>0</ServerActiveNetCount>
+  </Server>
+  <Server>
+   <ServerName>NETLOGGER2</ServerName>
+   <ServerActiveNetCount>0</ServerActiveNetCount>
+  </Server>
+  <Server>
+   <ServerName>NETLOGGER3</ServerName>
+   <ServerActiveNetCount>1</ServerActiveNetCount>
+   <Net>
+    <NetName>YL SYSTEM  SECOND PERIOD</NetName>
+    <AltNetName>YL SYSTEM  SECOND PERIOD</AltNetName>
+    <Frequency>14.332</Frequency>
+    <Logger>N8CALL-JOSE - v3.1.7W</Logger>
+    <NetControl>N8CALL</NetControl>
+    <Date>2026-10-06 15:46:00</Date>
+    <Mode>SSB</Mode>
+    <Band>20m</Band>
+    <SubscriberCount>19</SubscriberCount>
+   </Net>
+  </Server>
+  <Server>
+   <ServerName>NETLOGGER4</ServerName>
+   <ServerActiveNetCount>0</ServerActiveNetCount>
+  </Server>
+ </ServerList>
 </NetLoggerXML>

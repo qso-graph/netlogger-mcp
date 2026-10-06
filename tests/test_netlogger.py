@@ -6,7 +6,6 @@ No network: every test injects a fake fetch and a fake clock.
 from __future__ import annotations
 
 import json
-from importlib.resources import files
 from pathlib import Path
 
 import jsonschema
@@ -26,8 +25,15 @@ SCHEMA = json.loads(
 )
 
 
+SPEC = Path(__file__).parent / "fixtures" / "spec"
+
+
 def sample(routine: str) -> bytes:
-    return files("netlogger_mcp.samples").joinpath(f"{routine}.xml").read_bytes()
+    """Spec-shaped fixtures, written from NetLogger's interface specification. They
+    cover what the real responses in ``netlogger_mcp/samples`` don't show (a
+    ``<Warning>``, a non-UTC time zone, an unknown element, OMISS member IDs);
+    tests/test_real_responses.py checks the parser against the real ones (#15)."""
+    return (SPEC / f"{routine}.xml").read_bytes()
 
 
 def validate(instance: dict, definition: str) -> None:

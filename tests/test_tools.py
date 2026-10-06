@@ -1,4 +1,4 @@
-"""The MCP tools, in mock mode (bundled synthetic samples, no network)."""
+"""The MCP tools, in mock mode (bundled real responses, anonymized; no network)."""
 
 from __future__ import annotations
 
@@ -72,14 +72,14 @@ def test_first_use_asks_for_the_callsign():
 def test_set_callsign_is_saved_and_used(config):
     assert call("netlogger_set_callsign", {"callsign": "ki7mt"}) == {"callsign": "KI7MT", "saved": True}
     assert json.loads((config / "settings.json").read_text()) == {"callsign": "KI7MT"}
-    assert call("netlogger_active_nets")["total"] == 2
+    assert call("netlogger_active_nets")["total"] == 7
     assert server._source.callsign == "KI7MT"
 
 
 def test_remembered_across_restarts(config):
     call("netlogger_set_callsign", {"callsign": "KI7MT"})
     server._source = None  # as if the server restarted
-    assert call("netlogger_active_nets")["total"] == 2
+    assert call("netlogger_active_nets")["total"] == 7
 
 
 def test_bad_callsign_refused_and_not_saved(config):
@@ -120,22 +120,22 @@ def test_real_mode_shares_the_budget(with_callsign, monkeypatch):
 
 def test_active_nets_null_filter(with_callsign):
     """mcpo / Open WebUI send null for optional parameters."""
-    assert call("netlogger_active_nets", {"name_like": None})["total"] == 2
+    assert call("netlogger_active_nets", {"name_like": None})["total"] == 7
 
 
 def test_checkins(with_callsign):
-    r = call("netlogger_checkins", {"server_name": "NETLOGGER2", "net_name": "OMISS 80m SSB Net"})
-    assert r["pointer"] == 2 and len(r["checkins"]) == 2
+    r = call("netlogger_checkins", {"server_name": "NETLOGGER", "net_name": "Alaska morning net"})
+    assert r["pointer"] == 5 and len(r["checkins"]) == 10
 
 
 def test_past_nets_null_interval(with_callsign):
     r = call("netlogger_past_nets", {"interval_days": None, "name_like": None})
-    assert r["interval_days"] == 7 and r["nets"][0]["net_id"] == 987654
+    assert r["interval_days"] == 7 and r["nets"][0]["net_id"] == 440529
 
 
 def test_past_checkins(with_callsign):
-    r = call("netlogger_past_checkins", {"server_name": "NETLOGGER2", "net_name": "OMISS 80m SSB Net", "net_id": "987654"})
-    assert r["checkins"][0]["callsign"] == "KI7MT"
+    r = call("netlogger_past_checkins", {"server_name": "NETLOGGER", "net_name": "Pacific RV Service Net", "net_id": "440529"})
+    assert r["checkins"][0]["callsign"] == "K8CALL"
 
 
 def test_bad_input_is_an_error_result_not_a_crash(with_callsign):
