@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 0.1.8 (2026-10-06)
 
 - PyPI: the Documentation link goes to this package's own page, https://qso-graph.io/servers/netlogger-mcp/ (qso-graph/.github#15).
 - CI: the release flow (qso-graph/.github TEMPLATES.md). Work lands on `develop`; a release is a
