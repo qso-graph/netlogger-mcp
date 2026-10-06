@@ -483,3 +483,48 @@ class TestPendingRowsAndPointer:
         r = nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
         assert r["pending_serials"] == [] and "source_checkin_count" not in r
         assert r["pointer_callsign"] == "N0CALL"
+
+
+# ---------------------------------------------------------------------------
+# Note rows (#24): the logger's own lines, from the OMISS 40m net, 2026-09-29
+# ---------------------------------------------------------------------------
+
+def _note_row(serial: int, member: str | None, remarks: str | None) -> str:
+    return (
+        f"<Checkin><SerialNo>{serial}</SerialNo><Callsign/>"
+        + (f"<MemberID>{member}</MemberID>" if member is not None else "")
+        + (f"<Remarks>{remarks}</Remarks>" if remarks is not None else "")
+        + "</Checkin>"
+    )
+
+
+class TestNoteRows:
+    def _result(self, clock, rows: str, count: int):
+        body = (
+            "<NetLoggerXML><Header><TimeZone>UTC</TimeZone></Header><CheckinList>"
+            f"<ResponseCode>200 OK</ResponseCode><CheckinCount>{count}</CheckinCount><Pointer>1</Pointer>"
+            f"<Checkin><SerialNo>1</SerialNo><Callsign>KC9RRN</Callsign></Checkin>{rows}"
+            "</CheckinList></NetLoggerXML>"
+        ).encode()
+        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
+                             cache=Cache(clock=clock))
+        return nl.checkins("NETLOGGER2", "OMISS 40m SSB Net")
+
+    def test_note_rows_go_to_log_notes_not_pending(self, clock):
+        rows = (
+            _note_row(78, "#", "# NET START: 01:00")           # split across member ID and remarks
+            + _note_row(79, "# # FREQUENCY: 7.192", None)       # all in member ID
+            + _note_row(80, None, "# # NET CLOSE: 02:41")       # all in remarks
+            + _note_row(81, None, None)                         # nothing: really pending
+        )
+        r = self._result(clock, rows, 5)
+        assert r["log_notes"] == ["NET START: 01:00", "FREQUENCY: 7.192", "NET CLOSE: 02:41"]
+        assert r["pending_serials"] == [81]
+        assert r["checkin_count"] == 1 and [c["callsign"] for c in r["checkins"]] == ["KC9RRN"]
+
+    def test_hash_only_row_is_pending(self, clock):
+        r = self._result(clock, _note_row(82, "#", "#"), 2)
+        assert r["log_notes"] == [] and r["pending_serials"] == [82]
+
+    def test_clean_list_has_empty_log_notes(self, nl):
+        assert nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")["log_notes"] == []

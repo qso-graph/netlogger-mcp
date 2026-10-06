@@ -237,7 +237,7 @@ class Parsed:
 
     def checkins(self) -> dict[str, Any]:
         cl = self.checkin_list
-        checkins, pending = [], []
+        checkins, pending, notes = [], [], []
         pointer = count = None
         if cl is not None:
             for c in cl.iter("Checkin"):
@@ -245,10 +245,17 @@ class Parsed:
                 rec.update(_record(c, CHECKIN_FIELDS, self.utc))
                 if rec.get("callsign"):
                     checkins.append(rec)
+                    continue
+                # No callsign. With text in the member ID or remarks it is the
+                # logger's own note ("# # NET START: 01:00"), not a station; with
+                # nothing at all it is a row net control has opened but not filled
+                # in yet. Neither is a check-in.
+                text = " ".join(
+                    str(rec[f]).strip() for f in ("member_id", "remarks") if rec.get(f)
+                ).lstrip("# ").strip()
+                if text:
+                    notes.append(text)
                 elif "serial" in rec:
-                    # A row net control has opened but not filled in yet (the
-                    # callsign is typed after): a station being entered, not yet
-                    # a check-in.
                     pending.append(rec["serial"])
             for tag in ("Pointer", "CheckinCount"):
                 text = _child_text(cl, tag)
@@ -269,10 +276,11 @@ class Parsed:
             "pointer": pointer,
             "pointer_callsign": at_pointer["callsign"] if at_pointer else None,
             "pending_serials": sorted(pending),
+            "log_notes": notes,
             "checkins": checkins,
         }
         if count is not None and count != len(checkins):
-            result["source_checkin_count"] = count  # NetLogger's own figure, pending rows included
+            result["source_checkin_count"] = count  # NetLogger's own figure, pending and note rows included
         if not checkins and self.error:
             result["message"] = self.error  # e.g. no such net, or the net has closed
         return result

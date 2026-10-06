@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.5 (2026-10-06)
+
+- **Note rows aren't pending rows** (#24). A row with no callsign but text in its member ID or
+  remarks is the logger's own note (`# # NET START: 01:00`, `# # FREQUENCY: 7.192`), not a station
+  being entered. Notes are returned in `log_notes`, without the leading `# #`, as omiss-mcp already
+  does for the omiss.net archive (contract 0.4). Only rows with nothing at all stay in
+  `pending_serials`. Neither is counted as a check-in. Found by comparing a live OMISS 40m net with
+  its published report.
+- **Tool descriptions** (#23): `netlogger_active_nets` says that `total` counts the nets returned
+  after `name_like` while `servers` counts every net listed, and states the band rule (a readable
+  frequency decides `band_adif`; otherwise the logger's band counts only if it is an ADIF band name,
+  so a DMR net has none). `netlogger_checkins` explains `log_notes` and `pending_serials`.
+
 ## 0.1.4 (2026-09-29)
 
 From Patton's live run of 0.1.3:
