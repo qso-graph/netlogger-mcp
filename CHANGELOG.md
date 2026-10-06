@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.7 (2026-10-06)
 
 - `scripts/anonymize_samples.py` now also finds callsigns that begin with a digit (`4X4ABC`,
   `2E0ABC`, `3D2AB`, `9A1AA`) or are in lower case, in free-text fields, while leaving a D-STAR
