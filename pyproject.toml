@@ -32,6 +32,7 @@ test = ["pytest", "jsonschema"]
 
 [project.urls]
 Homepage = "https://qso-graph.io"
+Documentation = "https://qso-graph.io/servers/netlogger-mcp/"
 Repository = "https://github.com/qso-graph/netlogger-mcp"
 Issues = "https://github.com/qso-graph/netlogger-mcp/issues"
 
