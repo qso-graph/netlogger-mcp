@@ -31,7 +31,12 @@ import sys
 from pathlib import Path
 from xml.etree.ElementTree import Element, fromstring, tostring
 
-CALL = re.compile(r"\b[A-Z]{1,2}\d{1,2}[A-Z]{1,4}\b")
+# A callsign: a prefix of 1-2 letters, or a digit then 1-2 letters (4X, 2E, 3D, 9A), or a letter
+# then a digit (A6), then 1-2 digits, then 1-4 letters; any case. The prefix needs a letter, so a
+# D-STAR reflector's "35C" or a frequency is never taken for one, and a 4-character grid has no
+# suffix letters. Words that only look like callsigns are listed in NOT_CALLS.
+CALL = re.compile(r"\b(?:[A-Z]{1,2}|\d[A-Z]{1,2}|[A-Z]\d)\d{1,2}[A-Z]{1,4}\b", re.IGNORECASE)
+NOT_CALLS = {"C4FM"}  # Yaesu's digital mode
 FIRST = ["Alan", "Betty", "Carl", "Dora", "Evan", "Faye", "Glen", "Hope", "Ivan", "June", "Kurt",
          "Lena", "Mark", "Nora", "Owen", "Pam", "Rex", "Sue", "Ted", "Uma", "Vic", "Wes"]
 LAST = ["Adams", "Baker", "Clark", "Davis", "Evans", "Foster", "Grant", "Hayes", "Irwin", "Jones",
@@ -54,7 +59,7 @@ class Scrubber:
         return self.calls[c]
 
     def calls_in(self, text: str) -> str:
-        return CALL.sub(lambda m: self.call(m.group(0)), text)
+        return CALL.sub(lambda m: m.group(0) if m.group(0).upper() in NOT_CALLS else self.call(m.group(0)), text)
 
     def name(self, v: str) -> str:
         if v not in self.names:
