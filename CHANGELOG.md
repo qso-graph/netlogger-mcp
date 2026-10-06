@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- `scripts/anonymize_samples.py` now also finds callsigns that begin with a digit (`4X4ABC`,
+  `2E0ABC`, `3D2AB`, `9A1AA`) or are in lower case, in free-text fields, while leaving a D-STAR
+  reflector's `35C`, grid squares, frequencies and `C4FM` alone (#29). Test-tooling only: the
+  published package is unchanged, and today's samples regenerate identically.
+
 ## 0.1.6 (2026-10-06)
 
 - **Tested against real NetLogger responses** (#15). The bundled samples (mock mode) are now one
