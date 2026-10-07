@@ -1,6 +1,6 @@
 [project]
 name = "netlogger-mcp"
-version = "0.1.8"
+version = "0.1.9"
 description = "MCP server for net logging: live and past nets and check-ins, rate-limited to NetLogger's guidelines"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
