@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 0.1.9 (2026-10-07)
 
 - LICENSE: the full GPL-3.0 text. The file held only its opening and a link, so GitHub detected no licence.
 
