@@ -124,8 +124,10 @@ class TestCalls:
         assert fake.urls[0].endswith("GetPastNetCheckins.php?ServerName=NETLOGGER2&NetName=OMISS+80m+SSB+Net&NetID=987654")
 
     def test_get_pointer_never_called(self, nl, fake):
-        nl.active_nets(); nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
-        nl.past_nets(); nl.past_checkins("NETLOGGER2", "x", 1)
+        nl.active_nets()
+        nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
+        nl.past_nets()
+        nl.past_checkins("NETLOGGER2", "x", 1)
         assert not any("GetPointer" in u for u in fake.urls)
 
 
@@ -234,7 +236,9 @@ class TestLimits:
         assert LIMITS == {"GetActiveNets": 1, "GetCheckins": 3, "GetPastNets": 1, "GetPastNetCheckins": 10}
 
     def test_active_nets_one_call_a_minute_for_any_filters(self, nl, fake, clock):
-        nl.active_nets(); nl.active_nets("OMISS"); nl.active_nets("ARES")
+        nl.active_nets()
+        nl.active_nets("OMISS")
+        nl.active_nets("ARES")
         clock.now += 59
         nl.active_nets("omiss")
         assert len(fake.urls) == 1
@@ -286,7 +290,8 @@ class TestLimits:
 
     def test_over_limit_answers_from_stale_cache(self, nl, fake, clock):
         nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
-        nl.checkins("NETLOGGER", "A"); nl.checkins("NETLOGGER", "B")
+        nl.checkins("NETLOGGER", "A")
+        nl.checkins("NETLOGGER", "B")
         clock.now += 30  # the OMISS entry is past its 20 s reuse time, the limit is still spent
         r = nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
         assert r["stale"] is True and r["cached"] is True and r["age_seconds"] == 30

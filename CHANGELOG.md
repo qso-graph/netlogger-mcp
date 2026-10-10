@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- **ruff and mypy run in CI** (qso-graph-devel#66), as a job the `ci-all-green` gate requires.
+  Settings follow `adif-mcp`, the reference for every qso-graph Python repo, rather than a style of
+  this repo's own. They run once rather than per Python version: both read the source, and neither
+  answer changes with the interpreter.
+- The inter-process file lock tests `sys.platform` rather than `os.name`. Both are true on
+  Windows, but only the first narrows for a type checker, so the Windows branch was being read
+  against a POSIX stdlib with no `msvcrt` in it.
+- The shared limiter and cache files name what their dicts and lists hold, `_run` types its
+  `*args`, and a loop variable that shadowed the note read out of the same check-in record is
+  renamed. Four test lines carry one statement each.
+- `E501` is deferred rather than adopted (qso-graph-devel#70): what it reports in these repos are
+  widths, not defects, and some lines are long because they name a publisher's field exactly.
+- `mcp.run` is given the literal fastmcp asks for rather than a `str` that happens to hold the
+  right word.
+
 ## 0.1.9 (2026-10-07)
 
 - LICENSE: the full GPL-3.0 text. The file held only its opening and a link, so GitHub detected no licence.

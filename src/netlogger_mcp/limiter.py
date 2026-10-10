@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import threading
 import time
 from collections import deque
@@ -12,7 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
-if os.name == "nt":
+if sys.platform == "win32":
     import msvcrt
 else:
     import fcntl
@@ -78,7 +79,7 @@ def _file_lock(path: Path) -> Iterator[None]:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o644)
     try:
-        if os.name == "nt":
+        if sys.platform == "win32":
             os.lseek(fd, 0, os.SEEK_SET)
             msvcrt.locking(fd, msvcrt.LK_LOCK, 1)  # retries for about 10 s, then OSError
         else:
@@ -86,7 +87,7 @@ def _file_lock(path: Path) -> Iterator[None]:
         try:
             yield
         finally:
-            if os.name == "nt":
+            if sys.platform == "win32":
                 os.lseek(fd, 0, os.SEEK_SET)
                 msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
             else:
@@ -135,10 +136,10 @@ class SharedRateLimiter:
         self._fallback = RateLimiter(limits, window, clock)
         self._fell_back_at: float | None = None  # when the file last failed
 
-    def _empty(self) -> dict[str, dict]:
+    def _empty(self) -> dict[str, dict[str, Any]]:
         return {"calls": {}, "blocked_until": {}}
 
-    def _read(self, now: float) -> dict[str, dict]:
+    def _read(self, now: float) -> dict[str, dict[str, Any]]:
         try:
             data = json.loads(self._path.read_text(encoding="utf-8"))
         except FileNotFoundError:
@@ -157,14 +158,15 @@ class SharedRateLimiter:
             # We can't tell what was spent, so assume everything was.
             log.warning("call-limit file %s was unreadable; waiting a full window", self._path)
             return {"calls": {}, "blocked_until": {r: now + self._window for r in self._limits}}
-        return data
+        read: dict[str, dict[str, Any]] = data
+        return read
 
-    def _write(self, data: dict[str, dict]) -> None:
+    def _write(self, data: dict[str, dict[str, Any]]) -> None:
         tmp = self._path.with_suffix(".tmp")
         tmp.write_text(json.dumps(data), encoding="utf-8")
         os.replace(tmp, self._path)
 
-    def _prune(self, data: dict[str, dict], now: float) -> None:
+    def _prune(self, data: dict[str, dict[str, Any]], now: float) -> None:
         for routine in list(data["calls"]):
             kept = [min(t, now) for t in data["calls"][routine] if now - min(t, now) < self._window]
             if kept:
@@ -192,7 +194,7 @@ class SharedRateLimiter:
         """True while this process should stay on its own budget."""
         return self._fell_back_at is not None and self._clock() - self._fell_back_at < self._window
 
-    def _carry_back(self, data: dict[str, dict]) -> None:
+    def _carry_back(self, data: dict[str, dict[str, Any]]) -> None:
         """Rejoining: add the calls and back-offs this process made on its own."""
         calls, blocked = self._fallback.snapshot()
         for routine, stamps in calls.items():
@@ -317,7 +319,7 @@ class SharedCache:
             log.warning("can't share cached answers through %s (%s); this process keeps its own", self._path, error)
             self._warned = True
 
-    def _read(self) -> dict[str, list]:
+    def _read(self) -> dict[str, list[Any]]:
         try:
             data = json.loads(self._path.read_text(encoding="utf-8"))
         except FileNotFoundError:

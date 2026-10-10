@@ -223,13 +223,13 @@ class Parsed:
         return self.code
 
     def nets(self) -> list[dict[str, Any]]:
-        nets = []
+        nets: list[dict[str, Any]] = []
         if self.server_list is None:
             return nets
         for server in self.server_list.iter("Server"):
             server_name = _child_text(server, "ServerName") or ""
             for net in server.iter("Net"):
-                rec = {"source": SOURCE, "server": server_name}
+                rec: dict[str, Any] = {"source": SOURCE, "server": server_name}
                 rec.update(_record(net, NET_FIELDS, self.utc))
                 rec.update(read_band_and_frequency(rec.get("band"), rec.get("frequency")))
                 nets.append(rec)
@@ -237,11 +237,13 @@ class Parsed:
 
     def checkins(self) -> dict[str, Any]:
         cl = self.checkin_list
-        checkins, pending, notes = [], [], []
+        checkins: list[dict[str, Any]] = []
+        pending: list[Any] = []
+        notes: list[str] = []
         pointer = count = None
         if cl is not None:
             for c in cl.iter("Checkin"):
-                rec = {"source": SOURCE}
+                rec: dict[str, Any] = {"source": SOURCE}
                 rec.update(_record(c, CHECKIN_FIELDS, self.utc))
                 if rec.get("callsign"):
                     checkins.append(rec)
@@ -258,9 +260,9 @@ class Parsed:
                 elif "serial" in rec:
                     pending.append(rec["serial"])
             for tag in ("Pointer", "CheckinCount"):
-                text = _child_text(cl, tag)
+                counted = _child_text(cl, tag)
                 try:
-                    value = int(text) if text else None
+                    value = int(counted) if counted else None
                 except ValueError:
                     value = None
                 if tag == "Pointer":

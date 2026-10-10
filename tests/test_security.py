@@ -93,6 +93,7 @@ def test_xml_parsed_with_defusedxml():
 def test_private_fields_not_in_contract():
     """Street, ZIP and srcIP have no field in the contract, so they can't be returned."""
     import json
+
     from netlogger_mcp.contract import CHECKIN_FIELDS, NET_FIELDS, PRIVATE_SOURCE_FIELDS
 
     mapped = {tag for tags in (*NET_FIELDS.values(), *CHECKIN_FIELDS.values()) for tag in tags}
