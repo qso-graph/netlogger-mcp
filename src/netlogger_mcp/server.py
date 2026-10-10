@@ -10,8 +10,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from . import __contract_version__, __spec_version__, __version__
-from . import settings
+from . import __contract_version__, __spec_version__, __version__, settings
 from .limiter import Cache, RateLimiter, SharedCache, SharedRateLimiter
 from .netlogger import LIMITS, NetLoggerError, NetLoggerSource, as_of_utc
 from .paths import cache_file, limits_file
@@ -94,9 +93,10 @@ def _get_source() -> NetLoggerSource:
     return _source
 
 
-def _run(method: str, *args) -> dict[str, Any]:
+def _run(method: str, *args: Any) -> dict[str, Any]:
     try:
-        return getattr(_get_source(), method)(*args)
+        answer: dict[str, Any] = getattr(_get_source(), method)(*args)
+        return answer
     except NeedsCallsign:
         return {**NEEDS_CALLSIGN, "as_of_utc": as_of_utc()}
     except NetLoggerError as e:
@@ -242,8 +242,10 @@ def main() -> None:
         if arg == "--port" and i < len(sys.argv) - 1:
             port = int(sys.argv[i + 1])
 
+    # Written out rather than passed through: fastmcp takes a literal, and a
+    # str that happens to hold the right word is not the same thing.
     if transport == "streamable-http":
-        mcp.run(transport=transport, port=port)
+        mcp.run(transport="streamable-http", port=port)
     else:
         mcp.run(transport="stdio")
 
