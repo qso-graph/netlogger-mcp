@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.10 (2026-10-11)
 
 - **ruff and mypy run in CI** (qso-graph-devel#66), as a job the `ci-all-green` gate requires.
   Settings follow `adif-mcp`, the reference for every qso-graph Python repo, rather than a style of
