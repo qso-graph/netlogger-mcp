@@ -34,8 +34,10 @@ NetLogger is the logging program many amateur-radio nets use: net control or a l
 Every request tells NetLogger which station is asking, so it can tell one user from another:
 
 ```
-netlogger-mcp/0.1.0 (KI7MT; +https://github.com/qso-graph/netlogger-mcp)
+netlogger-mcp/0.1.9 (KI7MT; +https://github.com/qso-graph/netlogger-mcp)
 ```
+
+The version is the installed one — it is read from the package, not written here.
 
 On first use the assistant asks for your callsign and saves it. You're asked once. To set it yourself, use `NETLOGGER_MCP_CALLSIGN=KI7MT`.
 
