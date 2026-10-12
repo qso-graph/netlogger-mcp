@@ -12,6 +12,7 @@ import json  # noqa: E402
 
 import pytest  # noqa: E402
 from fastmcp import Client  # noqa: E402
+from fastmcp.exceptions import ToolError  # noqa: E402
 
 from netlogger_mcp import server  # noqa: E402
 
@@ -64,9 +65,18 @@ def test_version_info():
 
 
 def test_first_use_asks_for_the_callsign():
-    r = call("netlogger_active_nets")
-    assert r["needs_callsign"] is True
-    assert "netlogger_set_callsign" in r["next_step"]
+    """Flagged since #46, and the instruction is still the whole point.
+
+    This is the clearest case in the server for isError: the tool declined to
+    act, and the caller can fix it in one step. A successful result saying so
+    in a payload left the model to notice nothing had happened; now it sees the
+    call failed *and* is told exactly what to do.
+    """
+    with pytest.raises(ToolError) as caught:
+        call("netlogger_active_nets")
+    message = str(caught.value)
+    assert "netlogger_set_callsign" in message
+    assert "callsign" in message
 
 
 def test_set_callsign_is_saved_and_used(config):
@@ -83,8 +93,13 @@ def test_remembered_across_restarts(config):
 
 
 def test_bad_callsign_refused_and_not_saved(config):
-    r = call("netlogger_set_callsign", {"callsign": "not a call"})
-    assert "error" in r
+    """The refusal is flagged; the half that matters is that nothing is written.
+
+    netlogger_set_callsign is the one tool here that writes, so "refused" has
+    to mean the settings file is untouched, not merely that the answer said no.
+    """
+    with pytest.raises(ToolError):
+        call("netlogger_set_callsign", {"callsign": "not a call"})
     assert not (config / "settings.json").exists()
 
 
@@ -138,9 +153,15 @@ def test_past_checkins(with_callsign):
     assert r["checkins"][0]["callsign"] == "K8CALL"
 
 
-def test_bad_input_is_an_error_result_not_a_crash(with_callsign):
-    r = call("netlogger_checkins", {"server_name": "bad name!", "net_name": "x"})
-    assert "error" in r and "server_name" in r["error"]
+def test_bad_input_is_a_flagged_error_not_a_crash(with_callsign):
+    """Renamed with #46: it is no longer an error *result*.
+
+    The distinction the name used to draw — an error rather than a traceback —
+    still holds, and is now drawn where a client can see it.
+    """
+    with pytest.raises(ToolError) as caught:
+        call("netlogger_checkins", {"server_name": "bad name!", "net_name": "x"})
+    assert "server_name" in str(caught.value)
 
 
 def test_help_and_version_exit_without_serving(capsys, monkeypatch):

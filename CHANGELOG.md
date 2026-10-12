@@ -2,6 +2,46 @@
 
 ## Unreleased
 
+**Upgrading:** a tool that fails now returns `isError: true` instead of a successful result whose
+payload carried an `error` key. Anything reading `result["error"]` should read the error flag.
+
+**The one that will be noticed:** needing a callsign used to be a *successful* result carrying
+`needs_callsign: true` and a `next_step`. It is now a flagged error whose message is the whole of
+that instruction. A caller that read `needs_callsign` should instead read the error flag; the text
+still says exactly what to do and names `netlogger_set_callsign`.
+
+- **Tool errors are flagged `isError`** (#46). Five error returns in `src/` arrived on the wire as
+  successful results, so a client could not tell "the tool answered" from "the tool refused". The
+  specification says of `CallToolResult.isError` that otherwise "the LLM would not be able to see
+  that an error occurred and self-correct" — we were relying on the model reading the word *error*
+  in prose where the protocol has a flag. They now raise `ToolError`, which FastMCP flags with the
+  message intact.
+- The catch-all branch deliberately does **not** pass `str(e)` through. It exists for what was not
+  foreseen, and an unforeseen exception's text is not known to be safe to show; the three branches
+  above it carry the messages that were written to be read.
+- **Every tool declares all four annotation hints** (#46). Omitting them is not neutral: the
+  defaults advertise a tool as `destructiveHint: true`, `idempotentHint: false` and
+  `openWorldHint: true`, and the specification tells a client it may keep a human in the loop for
+  an operation like that. So six read-only-looking tools were published as potentially destructive.
+- **`netlogger_set_callsign` is `readOnlyHint: false`, and that is the point.** Issue #46 says
+  "every tool in this repo is read-only" and that is not so — this one writes the operator's
+  callsign to a settings file. It is the first tool in this fleet sweep that is not read-only, and
+  copying the block the other nine servers use would have published a plain untruth about it. It is
+  `destructiveHint: false` (it replaces one value the operator set themselves, and loses nothing
+  else) and `idempotentHint: true` (saving the same callsign twice leaves the same state), so a
+  client may safely retry it. `openWorldHint: false`: it writes locally and tells NetLogger nothing
+  until the next lookup.
+- `get_version_info` is `openWorldHint: false` — it reports versions carried in the wheel and opens
+  no connection. The four NetLogger lookups are `true`.
+- **`tests/test_mcp_conformance.py` asserts all of it**, through a real `fastmcp.Client` where the
+  claim is about the wire. Each check was falsified once — the check removed, the suite watched to
+  fail — including the two that matter most here: a `netlogger_set_callsign` that claims to be
+  read-only, and a refusal that keeps the flag but loses the instruction. `get_version_info` drifted
+  across this fleet precisely because it was a convention nobody asserted.
+- Two controls back the write hints with behaviour rather than trust: the tool really does write a
+  settings file, and a **refused** callsign leaves no file behind.
+- `as_of_utc` was on the error payloads as well as the successful ones. It is unchanged for a
+  successful answer, which gets it from the source layer, and a test says so.
 - **`certifi` is carried, and the fetch verifies against it** (#44, qso-graph-devel#73). The one
   `urlopen` in `netlogger.py` passed no context, so it trusted whichever root store the running
   Python was built against. On macOS that is `/etc/ssl/cert.pem`, a deliberately *reduced*
