@@ -80,7 +80,9 @@ def test_first_use_asks_for_the_callsign():
 
 
 def test_set_callsign_is_saved_and_used(config):
-    assert call("netlogger_set_callsign", {"callsign": "ki7mt"}) == {"callsign": "KI7MT", "saved": True}
+    assert call("netlogger_set_callsign", {"callsign": "ki7mt"}) == {
+        "callsign": "KI7MT", "saved": True,
+    }
     assert json.loads((config / "settings.json").read_text()) == {"callsign": "KI7MT"}
     assert call("netlogger_active_nets")["total"] == 7
     assert server._source.callsign == "KI7MT"
@@ -139,7 +141,9 @@ def test_active_nets_null_filter(with_callsign):
 
 
 def test_checkins(with_callsign):
-    r = call("netlogger_checkins", {"server_name": "NETLOGGER", "net_name": "Alaska morning net"})
+    r = call("netlogger_checkins", {
+        "server_name": "NETLOGGER", "net_name": "Alaska morning net",
+    })
     assert r["pointer"] == 5 and len(r["checkins"]) == 10
 
 
@@ -149,7 +153,10 @@ def test_past_nets_null_interval(with_callsign):
 
 
 def test_past_checkins(with_callsign):
-    r = call("netlogger_past_checkins", {"server_name": "NETLOGGER", "net_name": "Pacific RV Service Net", "net_id": "440529"})
+    r = call("netlogger_past_checkins", {
+        "server_name": "NETLOGGER", "net_name": "Pacific RV Service Net",
+        "net_id": "440529",
+    })
     assert r["checkins"][0]["callsign"] == "K8CALL"
 
 
@@ -165,7 +172,11 @@ def test_bad_input_is_a_flagged_error_not_a_crash(with_callsign):
 
 
 def test_help_and_version_exit_without_serving(capsys, monkeypatch):
-    for arg, expect in (("--help", "usage: netlogger-mcp"), ("-h", "usage: netlogger-mcp"), ("--version", "netlogger-mcp ")):
+    for arg, expect in (
+        ("--help", "usage: netlogger-mcp"),
+        ("-h", "usage: netlogger-mcp"),
+        ("--version", "netlogger-mcp "),
+    ):
         monkeypatch.setattr("sys.argv", ["netlogger-mcp", arg])
         server.main()  # returns instead of serving
         assert expect in capsys.readouterr().out

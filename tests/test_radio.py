@@ -17,13 +17,17 @@ def test_frequencies(text, mhz):
 
 
 # "146520" fits two ADIF bands (146.52 MHz on 2m, 146,520 MHz on 2mm), so it's left unread.
-@pytest.mark.parametrize("text", ["TG 3141", "", "7.2 or 3.8", "Echolink", "0", "12345", "146520"])
+@pytest.mark.parametrize("text", [
+    "TG 3141", "", "7.2 or 3.8", "Echolink", "0", "12345", "146520",
+])
 def test_unreadable_frequencies(text):
     assert frequency_mhz(text) is None
 
 
 def test_bands_are_adifs():
-    assert adif_band(7.192) == "40m" and adif_band(3.918) == "80m" and adif_band(147.03) == "2m"
+    assert adif_band(7.192) == "40m"
+    assert adif_band(3.918) == "80m"
+    assert adif_band(147.03) == "2m"
     assert adif_band(462.675) is None  # GMRS: not an amateur band
 
 

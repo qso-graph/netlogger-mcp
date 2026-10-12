@@ -85,8 +85,11 @@ def test_xml_parsed_with_defusedxml():
     """XML from the network is parsed only through defusedxml."""
     for py_file in _py_files():
         content = py_file.read_text()
-        assert not re.search(r'^\s*(?:from|import)\s+xml\.(?:etree|dom|sax)(?!\.ElementTree import Element\b)',
-                             content, re.MULTILINE), f"stdlib XML parser imported in {py_file.name}"
+        stdlib_xml = r'^\s*(?:from|import)\s+xml\.(?:etree|dom|sax)'
+        allowed = r'(?!\.ElementTree import Element\b)'
+        assert not re.search(stdlib_xml + allowed, content, re.MULTILINE), (
+            f"stdlib XML parser imported in {py_file.name}"
+        )
         assert "lxml" not in content, f"lxml in {py_file.name}"
 
 

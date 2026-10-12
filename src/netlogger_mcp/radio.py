@@ -18,7 +18,9 @@ from typing import Any
 
 _BANDS: list[tuple[str, float, float]] = [
     (b["band"], float(b["lower_mhz"]), float(b["upper_mhz"]))
-    for b in json.loads(files("netlogger_mcp").joinpath("adif_band.json").read_text(encoding="utf-8"))["bands"]
+    for b in json.loads(
+        files("netlogger_mcp").joinpath("adif_band.json").read_text(encoding="utf-8")
+    )["bands"]
 ]
 _BAND_NAMES = {name.casefold(): name for name, _, _ in _BANDS}
 
