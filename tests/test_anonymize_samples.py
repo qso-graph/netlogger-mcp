@@ -14,12 +14,17 @@ anonymize = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(anonymize)
 
 
-@pytest.mark.parametrize("call", ["W1AW", "KK4XA", "9A1AA", "4X4ABC", "2E0ABC", "3D2AB", "A61AB", "kk4xa"])
+@pytest.mark.parametrize("call", [
+    "W1AW", "KK4XA", "9A1AA", "4X4ABC", "2E0ABC", "3D2AB", "A61AB", "kk4xa",
+])
 def test_callsigns_in_free_text_are_replaced(call):
     out = anonymize.Scrubber().calls_in(f"{call} Morning Net")
     assert call not in out and out.endswith(" Morning Net")
 
 
-@pytest.mark.parametrize("text", ["REF 35C", "Tue DRE Net 35C w Duff", "EL29", "14.340", "7.185.5", "C4FM", "2m", "40m SSB"])
+@pytest.mark.parametrize("text", [
+    "REF 35C", "Tue DRE Net 35C w Duff", "EL29", "14.340", "7.185.5", "C4FM",
+    "2m", "40m SSB",
+])
 def test_things_that_are_not_callsigns_are_kept(text):
     assert anonymize.Scrubber().calls_in(text) == text

@@ -16,14 +16,17 @@ from __future__ import annotations
 
 import logging
 import re
+import ssl
 import threading
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from functools import cache
 from typing import Any, Callable
 from xml.etree.ElementTree import Element
 
+import certifi
 from defusedxml.ElementTree import fromstring
 
 from . import __version__
@@ -119,15 +122,20 @@ def _program_token(program_id: str | None, program_version: str | None) -> str:
     return f"{program_id}/{program_version} " if program_version else f"{program_id} "
 
 
-def user_agent(callsign: str, program_id: str | None = None, program_version: str | None = None) -> str:
+def user_agent(
+    callsign: str, program_id: str | None = None, program_version: str | None = None,
+) -> str:
     """Program (ADIF PROGRAMID/PROGRAMVERSION), then this library, then the station."""
-    return f"{_program_token(program_id, program_version)}netlogger-mcp/{__version__} ({callsign}; +{REPO})"
+    return (f"{_program_token(program_id, program_version)}"
+            f"netlogger-mcp/{__version__} ({callsign}; +{REPO})")
 
 
 def _server_name(value: str) -> str:
     value = (value or "").strip()
     if not _SERVER_RE.fullmatch(value):
-        raise NetLoggerError("server_name must be 1-32 letters, digits, '-' or '_' (e.g. NETLOGGER)")
+        raise NetLoggerError(
+            "server_name must be 1-32 letters, digits, '-' or '_' (e.g. NETLOGGER)"
+        )
     return value
 
 
@@ -204,11 +212,14 @@ def _record(el: Element, fields: dict[str, tuple[str, ...]], utc: bool) -> dict[
 class Parsed:
     def __init__(self, root: Element) -> None:
         header = root.find("Header")
-        self.time_zone = (_child_text(header, "TimeZone") if header is not None else None) or "UTC"
+        self.time_zone = (
+            _child_text(header, "TimeZone") if header is not None else None
+        ) or "UTC"
         self.utc = self.time_zone.upper() == "UTC"
         self.api_version = _child_text(header, "APIVersion") if header is not None else None
         self.warnings = [
-            (w.text or "").strip() for w in (header.iter("Warning") if header is not None else [])
+            (w.text or "").strip()
+            for w in (header.iter("Warning") if header is not None else [])
         ]
         self.error = _child_text(root, "Error")
         self.code = _response_code(root)
@@ -272,7 +283,11 @@ class Parsed:
         checkins.sort(key=lambda r: r.get("serial", 0))
         # Serials are renumbered as the logger edits the list, so the station at
         # the pointer is named here, from the same answer.
-        at_pointer = next((c for c in checkins if pointer is not None and c.get("serial") == pointer), None)
+        at_pointer = next(
+            (c for c in checkins
+             if pointer is not None and c.get("serial") == pointer),
+            None,
+        )
         result = {
             "checkin_count": len(checkins),
             "pointer": pointer,
@@ -282,7 +297,8 @@ class Parsed:
             "checkins": checkins,
         }
         if count is not None and count != len(checkins):
-            result["source_checkin_count"] = count  # NetLogger's own figure, pending and note rows included
+            # NetLogger's own figure, pending and note rows included.
+            result["source_checkin_count"] = count
         if not checkins and self.error:
             result["message"] = self.error  # e.g. no such net, or the net has closed
         return result
@@ -307,11 +323,48 @@ def parse(body: bytes) -> Parsed:
 # ---------------------------------------------------------------------------
 
 
+@cache
+def _context() -> ssl.SSLContext:
+    """A verifying context with a current root set. Built once.
+
+    The roots come from ``certifi`` — Mozilla's root program, the set the rest
+    of the Python ecosystem verifies against — rather than whichever store the
+    running Python was built against. On macOS that distinction is real: Apple
+    ships ``/etc/ssl/cert.pem`` for OpenSSL, and therefore for Python, as a
+    deliberately *reduced* file. It is current, not stale, but it omits roots
+    the OS itself trusts, so a certificate chaining to one of them fails for
+    Python while ``curl`` to the same URL succeeds (qso-graph-devel#73, found
+    when meteor-mcp could not reach NASA at all).
+
+    Measured 2026-10-12: ``www.netlogger.org`` chains through Let's Encrypt's
+    ``YR1`` to ISRG ``Root YR``, and verifies against Apple's file and against
+    ``certifi`` alike. So this is a latent defect rather than an outage. What it
+    buys is that the root set is now a dependency this project updates, not a
+    file the operating system hands us.
+
+    The point is not that ``certifi`` holds *more* roots — it holds fewer than
+    Apple's file. It is that it holds the right ones, and the same ones
+    ``requests`` and ``httpx`` would have used had this fleet not been written
+    against stdlib ``urllib``.
+
+    This server holds no credential — a callsign is public — so a trust failure
+    costs an answer rather than a secret. But it would cost it invisibly: the
+    user is told only that NetLogger couldn't be reached, with nothing pointing
+    at trust, and that is expensive to debug under pressure.
+
+    Verification is never disabled. ``ssl.CERT_NONE`` or ``check_hostname =
+    False`` would also make a call "work", by accepting any certificate from
+    anyone — a worse defect than this one, and an invisible one. The fix is the
+    right root set, not a relaxed check.
+    """
+    return ssl.create_default_context(cafile=certifi.where())
+
+
 def _urllib_fetch(agent: str) -> Fetch:
     def fetch(url: str) -> tuple[int, bytes, str | None]:
         req = urllib.request.Request(url, method="GET", headers={"User-Agent": agent})
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with urllib.request.urlopen(req, timeout=15, context=_context()) as resp:
                 return resp.status, resp.read(MAX_BODY + 1), resp.headers.get("Retry-After")
         except urllib.error.HTTPError as e:
             return e.code, e.read(MAX_BODY + 1) if e.fp else b"", e.headers.get("Retry-After")
@@ -360,7 +413,9 @@ class NetLoggerSource:
         self._cache = cache or SharedCache(cache_file())
         self._inflight = threading.Lock()  # one request at a time
 
-    def _call(self, routine: str, params: dict[str, str], cache_key: str) -> tuple[Parsed | Any, dict[str, Any]]:
+    def _call(
+        self, routine: str, params: dict[str, str], cache_key: str,
+    ) -> tuple[Parsed | Any, dict[str, Any]]:
         """Return (parsed or cached value, freshness info)."""
         hit = self._cache.get(cache_key)
         if hit is not None and hit[2]:
@@ -375,22 +430,31 @@ class NetLoggerSource:
             if wait > 0:
                 return self._stale_or_raise(hit, RateLimited(routine, wait))
 
-            url = BASE + routine + ".php" + ("?" + urllib.parse.urlencode(params) if params else "")
+            query = "?" + urllib.parse.urlencode(params) if params else ""
+            url = BASE + routine + ".php" + query
             try:
                 status, body, retry_after = self._fetch(url)
             except (OSError, ValueError) as e:
                 log.warning("NetLogger %s failed: %s", routine, e)
-                return self._stale_or_raise(hit, NetLoggerError("NetLogger couldn't be reached"))
+                return self._stale_or_raise(
+                    hit, NetLoggerError("NetLogger couldn't be reached")
+                )
 
             # NetLogger's 429 is anti-flooding aimed at the client, and every routine
             # hits the same server, so a 429 on one stops them all.
             if status == 429:
                 self._limiter.block_all(_retry_after(retry_after))
-                return self._stale_or_raise(hit, RateLimited(routine, _retry_after(retry_after)))
+                return self._stale_or_raise(
+                    hit, RateLimited(routine, _retry_after(retry_after))
+                )
             if len(body) > MAX_BODY:
-                return self._stale_or_raise(hit, NetLoggerError("NetLogger's response was too large"))
+                return self._stale_or_raise(
+                    hit, NetLoggerError("NetLogger's response was too large")
+                )
             if status != 200 and not body:
-                return self._stale_or_raise(hit, NetLoggerError(f"NetLogger answered HTTP {status}"))
+                return self._stale_or_raise(
+                    hit, NetLoggerError(f"NetLogger answered HTTP {status}")
+                )
 
             try:
                 parsed = parse(body)
@@ -401,18 +465,28 @@ class NetLoggerSource:
                 self._limiter.block_all(MIN_BACKOFF)
                 return self._stale_or_raise(hit, RateLimited(routine, MIN_BACKOFF))
             if code is not None and code >= 500:
-                return self._stale_or_raise(hit, NetLoggerError(f"NetLogger reported an error ({code})"))
+                return self._stale_or_raise(
+                    hit, NetLoggerError(f"NetLogger reported an error ({code})")
+                )
             if code in (400, 401, 403):
                 raise NetLoggerError(f"NetLogger refused the request ({code})")
             return parsed, {"cached": False, "age_seconds": 0, "stale": False}
 
     @staticmethod
-    def _stale_or_raise(hit: tuple[Any, float, bool] | None, error: NetLoggerError) -> tuple[Any, dict[str, Any]]:
+    def _stale_or_raise(
+        hit: tuple[Any, float, bool] | None, error: NetLoggerError,
+    ) -> tuple[Any, dict[str, Any]]:
         if hit is None:
             raise error
-        return hit[0], {"cached": True, "age_seconds": round(hit[1]), "stale": True, "note": str(error)}
+        return hit[0], {
+            "cached": True, "age_seconds": round(hit[1]), "stale": True,
+            "note": str(error),
+        }
 
-    def _fetch_cached(self, routine: str, params: dict[str, str], key: str, build: Callable[[Parsed], Any]) -> tuple[Any, dict[str, Any]]:
+    def _fetch_cached(
+        self, routine: str, params: dict[str, str], key: str,
+        build: Callable[[Parsed], Any],
+    ) -> tuple[Any, dict[str, Any]]:
         value, info = self._call(routine, params, key)
         if isinstance(value, Parsed):
             value = build(value)
@@ -437,7 +511,8 @@ class NetLoggerSource:
             needle = name_like.casefold()
             nets = [
                 n for n in nets
-                if needle in n.get("name", "").casefold() or needle in n.get("current_name", "").casefold()
+                if needle in n.get("name", "").casefold()
+                or needle in n.get("current_name", "").casefold()
             ]
         return {"source": SOURCE, "total": len(nets), "nets": nets, "servers": servers, **info}
 
@@ -451,8 +526,12 @@ class NetLoggerSource:
         )
         return {"source": SOURCE, "server": server, "net": net, **result, **info}
 
-    def past_nets(self, interval_days: int = PAST_DAYS_WITHOUT_FILTER, name_like: str | None = None) -> dict[str, Any]:
-        """Closed nets over the last ``interval_days``, with the net IDs past check-ins need."""
+    def past_nets(
+        self, interval_days: int = PAST_DAYS_WITHOUT_FILTER,
+        name_like: str | None = None,
+    ) -> dict[str, Any]:
+        """Closed nets over the last ``interval_days``, with the net IDs past
+        check-ins need."""
         try:
             days = int(interval_days)
         except (TypeError, ValueError):
@@ -471,9 +550,14 @@ class NetLoggerSource:
         nets, info = self._fetch_cached(
             "GetPastNets", params, f"past:{days}:{name_like.casefold()}", lambda p: p.nets(),
         )
-        return {"source": SOURCE, "interval_days": days, "total": len(nets), "nets": nets, **info}
+        return {
+            "source": SOURCE, "interval_days": days, "total": len(nets),
+            "nets": nets, **info,
+        }
 
-    def past_checkins(self, server_name: str, net_name: str, net_id: str | int) -> dict[str, Any]:
+    def past_checkins(
+        self, server_name: str, net_name: str, net_id: str | int,
+    ) -> dict[str, Any]:
         """A closed net's check-in list."""
         server = _server_name(server_name)
         net = _text(net_name, "net_name", 128, required=True)
@@ -482,4 +566,7 @@ class NetLoggerSource:
             "GetPastNetCheckins", {"ServerName": server, "NetName": net, "NetID": nid},
             f"pastcheckins:{server}:{net}:{nid}", lambda p: p.checkins(),
         )
-        return {"source": SOURCE, "server": server, "net": net, "net_id": int(nid), **result, **info}
+        return {
+            "source": SOURCE, "server": server, "net": net, "net_id": int(nid),
+            **result, **info,
+        }

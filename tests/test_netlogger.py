@@ -21,7 +21,8 @@ from netlogger_mcp.netlogger import (
 )
 
 SCHEMA = json.loads(
-    (Path(__file__).parent.parent / "src/netlogger_mcp/schema/contract.schema.json").read_text()
+    (Path(__file__).parent.parent
+     / "src/netlogger_mcp/schema/contract.schema.json").read_text()
 )
 
 
@@ -51,7 +52,10 @@ class Clock:
 class FakeNetLogger:
     """Answers from the samples and records every URL asked for."""
 
-    def __init__(self, status: int = 200, body: bytes | None = None, retry_after: str | None = None) -> None:
+    def __init__(
+        self, status: int = 200, body: bytes | None = None,
+        retry_after: str | None = None,
+    ) -> None:
         self.urls: list[str] = []
         self.status = status
         self.body = body
@@ -60,7 +64,8 @@ class FakeNetLogger:
     def __call__(self, url: str) -> tuple[int, bytes, str | None]:
         self.urls.append(url)
         routine = url.split("/api/")[1].split(".php")[0]
-        return self.status, self.body if self.body is not None else sample(routine), self.retry_after
+        body = self.body if self.body is not None else sample(routine)
+        return self.status, body, self.retry_after
 
 
 @pytest.fixture
@@ -75,7 +80,10 @@ def fake() -> FakeNetLogger:
 
 @pytest.fixture
 def nl(fake: FakeNetLogger, clock: Clock) -> NetLoggerSource:
-    return NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+    return NetLoggerSource(
+        "N0CALL", fetch=fake,
+        limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -91,8 +99,9 @@ class TestCalls:
         omiss = next(n for n in r["nets"] if n["server"] == "NETLOGGER2")
         assert omiss == {
             "source": "netlogger", "server": "NETLOGGER2", "name": "OMISS 80m SSB Net",
-            "current_name": "OMISS 80m SSB Net", "frequency": "3.825", "band": "80m", "mode": "SSB",
-            "net_control": "KI7MT", "logger": "KI7MT - v3.1.7", "opened": "2026-09-28T01:15:00Z",
+            "current_name": "OMISS 80m SSB Net", "frequency": "3.825",
+            "band": "80m", "mode": "SSB", "net_control": "KI7MT",
+            "logger": "KI7MT - v3.1.7", "opened": "2026-09-28T01:15:00Z",
             "monitoring": 21, "frequency_mhz": 3.825, "band_adif": "80m",
         }
         assert fake.urls == ["https://www.netlogger.org/api/GetActiveNets.php"]
@@ -101,7 +110,8 @@ class TestCalls:
         r = nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
         validate(r, "checkin_list")
         assert r["pointer"] == 2 and r["checkin_count"] == 2
-        assert [c["serial"] for c in r["checkins"]] == [1, 2]  # list order, whatever the XML order
+        # List order, whatever the XML order.
+        assert [c["serial"] for c in r["checkins"]] == [1, 2]
         assert r["checkins"][0]["member_id"] == "7212"
         assert "status" not in r["checkins"][0]  # a blank status is omitted
         assert fake.urls == [
@@ -113,7 +123,8 @@ class TestCalls:
         validate(r, "net_list")
         net = r["nets"][0]
         assert net["net_id"] == 987654 and net["aim"] is True and net["auto_closed"] is False
-        assert net["inactivity_timeout_minutes"] == 30  # the spec's "InactivitytTimer" spelling
+        # NetLogger's specification spells it "InactivitytTimer" here.
+        assert net["inactivity_timeout_minutes"] == 30
         assert net["closed"] == "2026-09-27T03:12:00Z"
         assert fake.urls == ["https://www.netlogger.org/api/GetPastNets.php?Interval=3&NetNameLike=OMISS"]
 
@@ -121,7 +132,11 @@ class TestCalls:
         r = nl.past_checkins("NETLOGGER2", "OMISS 80m SSB Net", "987654")
         validate(r, "checkin_list")
         assert r["net_id"] == 987654 and r["checkins"][0]["status"] == "(c/o)"
-        assert fake.urls[0].endswith("GetPastNetCheckins.php?ServerName=NETLOGGER2&NetName=OMISS+80m+SSB+Net&NetID=987654")
+        # Not wrapped: this is NetLogger's own query string, and the test is
+        # that we send exactly it. Split across two literals it stops being
+        # greppable against NetLogger's documentation, which is the reason for
+        # asserting the URL rather than the parameters.
+        assert fake.urls[0].endswith("GetPastNetCheckins.php?ServerName=NETLOGGER2&NetName=OMISS+80m+SSB+Net&NetID=987654")  # noqa: E501
 
     def test_get_pointer_never_called(self, nl, fake):
         nl.active_nets()
@@ -144,7 +159,9 @@ class TestPrivacy:
             nl.past_nets(),
             nl.past_checkins("NETLOGGER2", "OMISS 80m SSB Net", 987654),
         ])
-        for private in ("123 Example Street", "456 Sample Road", "99999", "88888", "192.0.2.10"):
+        for private in (
+            "123 Example Street", "456 Sample Road", "99999", "88888", "192.0.2.10",
+        ):
             assert private not in out
 
     def test_unknown_elements_dropped(self, nl):
@@ -160,9 +177,13 @@ class TestPrivacy:
 class TestParsing:
     def test_error_node_gives_empty_list_and_message(self, clock):
         body = (b"<NetLoggerXML><Header><TimeZone>UTC</TimeZone></Header>"
-                b"<Error>Not a Valid ServerName or NetName</Error><ResponseCode>404 Not Found</ResponseCode>"
+                b"<Error>Not a Valid ServerName or NetName</Error>"
+                b"<ResponseCode>404 Not Found</ResponseCode>"
                 b"</NetLoggerXML>")
-        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource(
+            "N0CALL", fetch=FakeNetLogger(body=body),
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         r = nl.checkins("NETLOGGER", "no such net")
         assert r["checkins"] == [] and r["checkin_count"] == 0
         assert r["message"] == "Not a Valid ServerName or NetName"
@@ -175,7 +196,8 @@ class TestParsing:
 
     def test_entity_expansion_refused(self):
         bomb = (b'<?xml version="1.0"?><!DOCTYPE x [<!ENTITY a "aaaaaaaaaa">'
-                b'<!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;">]><NetLoggerXML>&b;</NetLoggerXML>')
+                b'<!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;">]>'
+                b'<NetLoggerXML>&b;</NetLoggerXML>')
         with pytest.raises(NetLoggerError):
             parse(bomb)
 
@@ -184,7 +206,9 @@ class TestParsing:
             parse(b"<html><body>maintenance</body></html>")
 
     def test_non_utc_times_left_as_sent(self):
-        p = parse(sample("GetActiveNets").replace(b"<TimeZone>UTC</TimeZone>", b"<TimeZone>CST</TimeZone>"))
+        p = parse(sample("GetActiveNets").replace(
+            b"<TimeZone>UTC</TimeZone>", b"<TimeZone>CST</TimeZone>",
+        ))
         assert p.nets()[0]["opened"] == "2026-09-28 01:00:00"
 
 
@@ -233,7 +257,10 @@ class TestValidation:
 
 class TestLimits:
     def test_limits_are_netloggers(self):
-        assert LIMITS == {"GetActiveNets": 1, "GetCheckins": 3, "GetPastNets": 1, "GetPastNetCheckins": 10}
+        assert LIMITS == {
+            "GetActiveNets": 1, "GetCheckins": 3, "GetPastNets": 1,
+            "GetPastNetCheckins": 10,
+        }
 
     def test_active_nets_one_call_a_minute_for_any_filters(self, nl, fake, clock):
         nl.active_nets()
@@ -274,7 +301,8 @@ class TestLimits:
             clock.now = 1000.0 + second
             for fn, args in [
                 (nl.active_nets, ()), (nl.checkins, ("NETLOGGER", f"Net {second % 7}")),
-                (nl.past_nets, (second % 7 + 1,)), (nl.past_checkins, ("NETLOGGER", "Net", second)),
+                (nl.past_nets, (second % 7 + 1,)),
+                (nl.past_checkins, ("NETLOGGER", "Net", second)),
             ]:
                 before = len(fake.urls)
                 try:
@@ -292,7 +320,8 @@ class TestLimits:
         nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
         nl.checkins("NETLOGGER", "A")
         nl.checkins("NETLOGGER", "B")
-        clock.now += 30  # the OMISS entry is past its 20 s reuse time, the limit is still spent
+        # The OMISS entry is past its 20 s reuse time; the limit is still spent.
+        clock.now += 30
         r = nl.checkins("NETLOGGER2", "OMISS 80m SSB Net")
         assert r["stale"] is True and r["cached"] is True and r["age_seconds"] == 30
         assert "try again" in r["note"]
@@ -309,7 +338,10 @@ class TestLimits:
 class TestTooManyRequests:
     def test_http_429_backs_off_a_minute(self, clock):
         fake = FakeNetLogger(status=429, body=b"")
-        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource(
+            "N0CALL", fetch=fake,
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         with pytest.raises(RateLimited):
             nl.past_checkins("NETLOGGER", "Net", 1)
         fake.status, fake.body = 200, None
@@ -324,12 +356,16 @@ class TestTooManyRequests:
 
     def test_429_on_one_routine_stops_them_all(self, clock):
         fake = FakeNetLogger(status=429, body=b"")
-        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource(
+            "N0CALL", fetch=fake,
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         with pytest.raises(RateLimited):
             nl.checkins("NETLOGGER", "Net")
         fake.status, fake.body = 200, None
         clock.now += 30
-        for fn, args in [(nl.active_nets, ()), (nl.past_nets, ()), (nl.past_checkins, ("NETLOGGER", "Net", 1)),
+        for fn, args in [(nl.active_nets, ()), (nl.past_nets, ()),
+                         (nl.past_checkins, ("NETLOGGER", "Net", 1)),
                          (nl.checkins, ("NETLOGGER", "Other"))]:
             with pytest.raises(RateLimited):
                 fn(*args)
@@ -344,14 +380,18 @@ class TestTooManyRequests:
         fake.status, fake.body = 429, b""
         with pytest.raises(RateLimited):
             nl.checkins("NETLOGGER", "Net")  # blocks everything until +110
-        clock.now += 30  # active nets are 80 s old, past their reuse time, but NetLogger said stop
+        # Active nets are 80 s old, past their reuse time, but NetLogger said stop.
+        clock.now += 30
         fake.status, fake.body = 200, None
         r = nl.active_nets()
         assert r["stale"] is True and r["total"] == 2
 
     def test_retry_after_honoured(self, clock):
         fake = FakeNetLogger(status=429, body=b"", retry_after="300")
-        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource(
+            "N0CALL", fetch=fake,
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         with pytest.raises(RateLimited) as e:
             nl.past_checkins("NETLOGGER", "Net", 1)
         assert e.value.retry_after == 300
@@ -365,7 +405,10 @@ class TestTooManyRequests:
         body = (b"<NetLoggerXML><Header/><Error>Too many requests</Error>"
                 b"<ResponseCode>429 Too Many Requests</ResponseCode></NetLoggerXML>")
         fake = FakeNetLogger(body=body)
-        nl = NetLoggerSource("N0CALL", fetch=fake, limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock))
+        nl = NetLoggerSource(
+            "N0CALL", fetch=fake,
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         with pytest.raises(RateLimited):
             nl.checkins("NETLOGGER", "Net")
         clock.now += 30
@@ -390,12 +433,17 @@ class TestTooManyRequests:
 
 
 class TestCallsign:
-    @pytest.mark.parametrize("bad", [None, "", "   ", "KI", "NOCALL", "1234", "KI7MT!", "KI 7MT", "A" * 21])
+    @pytest.mark.parametrize("bad", [
+        None, "", "   ", "KI", "NOCALL", "1234", "KI7MT!", "KI 7MT", "A" * 21,
+    ])
     def test_required_and_checked(self, bad):
         with pytest.raises(NetLoggerError, match="callsign"):
             NetLoggerSource(bad)
 
-    @pytest.mark.parametrize("given,saved", [("ki7mt", "KI7MT"), (" KI7MT ", "KI7MT"), ("ki7mt/p", "KI7MT/P"), ("VE3/KI7MT", "VE3/KI7MT")])
+    @pytest.mark.parametrize("given,saved", [
+        ("ki7mt", "KI7MT"), (" KI7MT ", "KI7MT"), ("ki7mt/p", "KI7MT/P"),
+        ("VE3/KI7MT", "VE3/KI7MT"),
+    ])
     def test_normalized(self, given, saved):
         assert NetLoggerSource(given, fetch=FakeNetLogger()).callsign == saved
 
@@ -420,9 +468,10 @@ class TestCallsign:
             def __exit__(self, *a):
                 return False
 
-        def urlopen(req, timeout):
+        def urlopen(req, timeout, context=None):
             seen["ua"] = req.get_header("User-agent")
             seen["url"] = req.full_url
+            seen["context"] = context
             return Resp()
 
         monkeypatch.setattr("urllib.request.urlopen", urlopen)
@@ -430,12 +479,52 @@ class TestCallsign:
         assert "(KI7MT; " in seen["ua"]
         assert seen["url"].startswith("https://")
 
+    def test_real_requests_verify_the_certificate(self, monkeypatch):
+        """The context reaches urlopen, and it is one that checks certificates.
+
+        test_security.py greps the call for ``context=_context()``; this watches
+        the object arrive and asks it what it will do. A grep cannot tell a
+        verifying context from one built with verification turned off.
+        """
+        import ssl
+
+        seen = {}
+
+        class Resp:
+            status = 200
+            headers = {}
+
+            def read(self, n):
+                return sample("GetActiveNets")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        def urlopen(req, timeout, context=None):
+            seen["context"] = context
+            return Resp()
+
+        monkeypatch.setattr("urllib.request.urlopen", urlopen)
+        NetLoggerSource("KI7MT").active_nets()
+
+        context = seen["context"]
+        assert context is not None, "the fetch opened a connection with no context"
+        assert context.verify_mode == ssl.CERT_REQUIRED
+        assert context.check_hostname is True
+        assert context.get_ca_certs(), "the context carries no roots to verify against"
+
 
 class TestProgramId:
     """ADIF's PROGRAMID and PROGRAMVERSION name the app built on the library."""
 
     def test_program_leads_the_user_agent(self):
-        nl = NetLoggerSource("KI7MT", program_id="OM-Logger", program_version="0.3", fetch=FakeNetLogger())
+        nl = NetLoggerSource(
+            "KI7MT", program_id="OM-Logger", program_version="0.3",
+            fetch=FakeNetLogger(),
+        )
         assert nl.user_agent.startswith("OM-Logger/0.3 netlogger-mcp/")
         assert nl.user_agent.endswith("(KI7MT; +https://github.com/qso-graph/netlogger-mcp)")
 
@@ -444,10 +533,12 @@ class TestProgramId:
         assert nl.user_agent.startswith("OM-Logger netlogger-mcp/")
 
     def test_optional(self):
-        assert NetLoggerSource("KI7MT", fetch=FakeNetLogger()).user_agent.startswith("netlogger-mcp/")
+        agent = NetLoggerSource("KI7MT", fetch=FakeNetLogger()).user_agent
+        assert agent.startswith("netlogger-mcp/")
 
     @pytest.mark.parametrize("program_id,version", [
-        ("OM Logger", None), ("OM/Logger", None), ("OM-Logger", "0.3 beta"), ("", "0.3"), ("a" * 65, None),
+        ("OM Logger", None), ("OM/Logger", None), ("OM-Logger", "0.3 beta"),
+        ("", "0.3"), ("a" * 65, None),
         ("OM-Logger\r\nX-Injected: 1", None),
     ])
     def test_rejected(self, program_id, version):
@@ -461,21 +552,31 @@ class TestProgramId:
 
 def _live_list(pointer: int, rows: list[tuple[int, str | None]], count: int) -> bytes:
     checkins = "".join(
-        f"<Checkin><SerialNo>{s}</SerialNo>" + (f"<Callsign>{c}</Callsign>" if c else "<Callsign/>") + "</Checkin>"
+        f"<Checkin><SerialNo>{s}</SerialNo>"
+        + (f"<Callsign>{c}</Callsign>" if c else "<Callsign/>")
+        + "</Checkin>"
         for s, c in rows
     )
     return (
         "<NetLoggerXML><Header><TimeZone>UTC</TimeZone></Header><CheckinList>"
-        f"<ResponseCode>200 OK</ResponseCode><CheckinCount>{count}</CheckinCount><Pointer>{pointer}</Pointer>"
+        f"<ResponseCode>200 OK</ResponseCode><CheckinCount>{count}</CheckinCount>"
+        f"<Pointer>{pointer}</Pointer>"
         f"{checkins}</CheckinList></NetLoggerXML>"
     ).encode()
 
 
 class TestPendingRowsAndPointer:
     def test_pending_rows_are_not_checkins(self, clock):
-        body = _live_list(3, [(1, "KC9RRN"), (2, "W7RSO"), (3, "KG5JIM"), (21, None), (24, "W2EUA"), (25, None)], 6)
-        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
-                             cache=Cache(clock=clock))
+        body = _live_list(
+            3,
+            [(1, "KC9RRN"), (2, "W7RSO"), (3, "KG5JIM"), (21, None),
+             (24, "W2EUA"), (25, None)],
+            6,
+        )
+        nl = NetLoggerSource(
+            "N0CALL", fetch=FakeNetLogger(body=body),
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         r = nl.checkins("NETLOGGER2", "OMISS 40m SSB Net")
         assert [c["callsign"] for c in r["checkins"]] == ["KC9RRN", "W7RSO", "KG5JIM", "W2EUA"]
         assert r["checkin_count"] == 4
@@ -485,8 +586,10 @@ class TestPendingRowsAndPointer:
 
     def test_pointer_on_a_pending_row_names_no_one(self, clock):
         body = _live_list(21, [(1, "KC9RRN"), (21, None)], 2)
-        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
-                             cache=Cache(clock=clock))
+        nl = NetLoggerSource(
+            "N0CALL", fetch=FakeNetLogger(body=body),
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         r = nl.checkins("NETLOGGER2", "OMISS 40m SSB Net")
         assert r["pointer"] == 21 and r["pointer_callsign"] is None
 
@@ -513,17 +616,20 @@ class TestNoteRows:
     def _result(self, clock, rows: str, count: int):
         body = (
             "<NetLoggerXML><Header><TimeZone>UTC</TimeZone></Header><CheckinList>"
-            f"<ResponseCode>200 OK</ResponseCode><CheckinCount>{count}</CheckinCount><Pointer>1</Pointer>"
+            f"<ResponseCode>200 OK</ResponseCode><CheckinCount>{count}</CheckinCount>"
+            f"<Pointer>1</Pointer>"
             f"<Checkin><SerialNo>1</SerialNo><Callsign>KC9RRN</Callsign></Checkin>{rows}"
             "</CheckinList></NetLoggerXML>"
         ).encode()
-        nl = NetLoggerSource("N0CALL", fetch=FakeNetLogger(body=body), limiter=RateLimiter(LIMITS, clock=clock),
-                             cache=Cache(clock=clock))
+        nl = NetLoggerSource(
+            "N0CALL", fetch=FakeNetLogger(body=body),
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
         return nl.checkins("NETLOGGER2", "OMISS 40m SSB Net")
 
     def test_note_rows_go_to_log_notes_not_pending(self, clock):
         rows = (
-            _note_row(78, "#", "# NET START: 01:00")           # split across member ID and remarks
+            _note_row(78, "#", "# NET START: 01:00")          # split: ID + remarks
             + _note_row(79, "# # FREQUENCY: 7.192", None)       # all in member ID
             + _note_row(80, None, "# # NET CLOSE: 02:41")       # all in remarks
             + _note_row(81, None, None)                         # nothing: really pending

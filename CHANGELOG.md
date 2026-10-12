@@ -1,5 +1,113 @@
 # Changelog
 
+## 0.2.0 (2026-10-12)
+
+The minor version moves because two things a caller may have relied on now behave differently.
+
+**Upgrading:** a tool that fails now returns `isError: true` instead of a successful result whose
+payload carried an `error` key. Anything reading `result["error"]` should read the error flag.
+
+**The one that will be noticed:** needing a callsign used to be a *successful* result carrying
+`needs_callsign: true` and a `next_step`. It is now a flagged error whose message is the whole of
+that instruction. A caller that read `needs_callsign` should instead read the error flag; the text
+still says exactly what to do and names `netlogger_set_callsign`.
+
+### MCP specification 2026-07-28 (#46)
+
+- **Tool errors are flagged `isError`** (#46). Five error returns in `src/` arrived on the wire as
+  successful results, so a client could not tell "the tool answered" from "the tool refused". The
+  specification says of `CallToolResult.isError` that otherwise "the LLM would not be able to see
+  that an error occurred and self-correct" — we were relying on the model reading the word *error*
+  in prose where the protocol has a flag. They now raise `ToolError`, which FastMCP flags with the
+  message intact.
+- The catch-all branch deliberately does **not** pass `str(e)` through. It exists for what was not
+  foreseen, and an unforeseen exception's text is not known to be safe to show; the three branches
+  above it carry the messages that were written to be read.
+- **Every tool declares all four annotation hints** (#46). Omitting them is not neutral: the
+  defaults advertise a tool as `destructiveHint: true`, `idempotentHint: false` and
+  `openWorldHint: true`, and the specification tells a client it may keep a human in the loop for
+  an operation like that. So six read-only-looking tools were published as potentially destructive.
+- **`netlogger_set_callsign` is `readOnlyHint: false`, and that is the point.** Issue #46 says
+  "every tool in this repo is read-only" and that is not so — this one writes the operator's
+  callsign to a settings file. It is the first tool in this fleet sweep that is not read-only, and
+  copying the block the other nine servers use would have published a plain untruth about it. It is
+  `destructiveHint: false` (it replaces one value the operator set themselves, and loses nothing
+  else) and `idempotentHint: true` (saving the same callsign twice leaves the same state), so a
+  client may safely retry it. `openWorldHint: false`: it writes locally and tells NetLogger nothing
+  until the next lookup.
+- `get_version_info` is `openWorldHint: false` — it reports versions carried in the wheel and opens
+  no connection. The four NetLogger lookups are `true`.
+- **`tests/test_mcp_conformance.py` asserts all of it**, through a real `fastmcp.Client` where the
+  claim is about the wire. Each check was falsified once — the check removed, the suite watched to
+  fail — including the two that matter most here: a `netlogger_set_callsign` that claims to be
+  read-only, and a refusal that keeps the flag but loses the instruction. `get_version_info` drifted
+  across this fleet precisely because it was a convention nobody asserted.
+- Two controls back the write hints with behaviour rather than trust: the tool really does write a
+  settings file, and a **refused** callsign leaves no file behind.
+- `as_of_utc` was on the error payloads as well as the successful ones. It is unchanged for a
+  successful answer, which gets it from the source layer, and a test says so.
+
+### TLS (#44, qso-graph-devel#73)
+
+- **`certifi` is carried, and the fetch verifies against it** (#44, qso-graph-devel#73). The one
+  `urlopen` in `netlogger.py` passed no context, so it trusted whichever root store the running
+  Python was built against. On macOS that is `/etc/ssl/cert.pem`, a deliberately *reduced*
+  OpenSSL-compatibility file: current, not stale, but it omits roots the OS itself trusts, so a
+  certificate chaining to one of them fails for Python while `curl` to the same URL succeeds.
+- **Measured, not assumed:** `www.netlogger.org` chains through Let's Encrypt's `YR1` to ISRG
+  `Root YR`, and verifies against Apple's file and against `certifi` alike today. So this was
+  latent rather than an outage. What it buys is that the root set is now a dependency this project
+  updates, rather than a file the operating system hands us — and the same one `requests` and
+  `httpx` would have used had this fleet not been written against stdlib `urllib`.
+- `certifi` holds *fewer* roots than Apple's file (121 against 128), so the point is not a bigger
+  set. It is the right set, chosen by Mozilla's root program.
+- This server holds no credential — a callsign is public — so a trust failure costs an answer
+  rather than a secret. But it would cost it invisibly: the user is told only that NetLogger
+  couldn't be reached, with nothing pointing at trust. Verification is never disabled;
+  `ssl.CERT_NONE` would make a call "work" by accepting any certificate from anyone, which is a
+  worse defect than this one and a silent one.
+- **`certifi` is declared in `[project] dependencies`, and a test says so.** Measured: it is *not*
+  a transitive dependency of `fastmcp>=4.0,<5` + `defusedxml` — that pair resolves 85 packages and
+  `certifi` is not among them. An undeclared import here would be an ImportError at startup for
+  anyone who ran `pip install netlogger-mcp`, so this is a hard failure rather than a latent one.
+- Four static checks in `tests/test_security.py` (verification never disabled, the root set carried
+  not borrowed, `certifi` declared, every outbound call verifying) and one behavioural check in
+  `tests/test_netlogger.py` that watches the context arrive at `urlopen` and asks what it will do.
+  The behavioural one exists because a grep cannot tell a verifying context from one built with
+  verification switched off — falsified exactly that way, and it caught it.
+- `test_every_outbound_call_verifies` scans the whole package line by line, not one file: there is
+  one fetch here today, and a check written against the file you happen to be editing is a check
+  that misses the second one. Falsified by adding a second fetch path with no context.
+
+### Lint (#45, qso-graph-devel#70)
+
+- **`E501` is adopted** (#45, qso-graph-devel#70). It reported **105 lines**, and **not one of them
+  was a defect** — which is the finding, not an argument against enforcing it. A consistent width
+  is worth having; it just was never the thing holding the quality. The rules that do find defects
+  (`F`, `I`, mypy strict) went in first, which is why this waited.
+- **One line is exempt**, at the line rather than the file, and the config names what is exempted:
+  `tests/test_netlogger.py` asserts NetLogger's own query string whole, because the test is that we
+  send exactly that. Split across two literals it stops being greppable against NetLogger's
+  documentation, which is the reason for asserting the URL instead of its parameters. There the
+  length is the correctness. It is the only `# noqa: E501` in the repo, and removing it makes
+  `ruff` fail — so it is needed rather than decorative.
+- `USAGE` now opens with a line continuation so the synopsis sits under the width without being
+  wrapped. The printed `--help` text is byte-for-byte what it was (same SHA-256): wrapping a usage
+  synopsis would be a change to what a user reads, not formatting.
+- **Two things on the wire change, and only these two.** Reflowing an `Args:` line puts a newline
+  into the parameter description FastMCP publishes in `inputSchema`, so
+  `netlogger_active_nets.name_like` and `netlogger_past_nets.interval_days` each gain a `\n`. The
+  tool schemas were dumped through a real client before and after, and nothing else differs. Said
+  here because the rest of this is formatting, and a reader is entitled to assume formatting
+  changes nothing.
+
+### Docs
+
+- The README's User-Agent example said `netlogger-mcp/0.1.9` directly above the sentence "the
+  version is the installed one — it is read from the package, not written here". 0.1.10 set out to
+  stop freezing a number there and froze a newer one instead. The example now reads
+  `netlogger-mcp/<version>`, which is what the sentence claims and cannot go stale.
+
 ## 0.1.10 (2026-10-11)
 
 - **ruff and mypy run in CI** (qso-graph-devel#66), as a job the `ci-all-green` gate requires.

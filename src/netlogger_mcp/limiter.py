@@ -65,7 +65,9 @@ class RateLimiter:
         with self._lock:
             until = self._clock() + seconds
             for routine in self._limits:
-                self._blocked_until[routine] = max(until, self._blocked_until.get(routine, 0.0))
+                self._blocked_until[routine] = max(
+                    until, self._blocked_until.get(routine, 0.0)
+                )
 
     def snapshot(self) -> tuple[dict[str, list[float]], dict[str, float]]:
         """(calls per routine, blocked-until per routine), on this limiter's clock."""
@@ -157,7 +159,10 @@ class SharedRateLimiter:
         if not ok:
             # We can't tell what was spent, so assume everything was.
             log.warning("call-limit file %s was unreadable; waiting a full window", self._path)
-            return {"calls": {}, "blocked_until": {r: now + self._window for r in self._limits}}
+            return {
+                "calls": {},
+                "blocked_until": {r: now + self._window for r in self._limits},
+            }
         read: dict[str, dict[str, Any]] = data
         return read
 
@@ -168,7 +173,10 @@ class SharedRateLimiter:
 
     def _prune(self, data: dict[str, dict[str, Any]], now: float) -> None:
         for routine in list(data["calls"]):
-            kept = [min(t, now) for t in data["calls"][routine] if now - min(t, now) < self._window]
+            kept = [
+                min(t, now) for t in data["calls"][routine]
+                if now - min(t, now) < self._window
+            ]
             if kept:
                 data["calls"][routine] = kept
             else:
@@ -192,7 +200,8 @@ class SharedRateLimiter:
 
     def _on_own(self) -> bool:
         """True while this process should stay on its own budget."""
-        return self._fell_back_at is not None and self._clock() - self._fell_back_at < self._window
+        return (self._fell_back_at is not None
+                and self._clock() - self._fell_back_at < self._window)
 
     def _carry_back(self, data: dict[str, dict[str, Any]]) -> None:
         """Rejoining: add the calls and back-offs this process made on its own."""
@@ -200,7 +209,9 @@ class SharedRateLimiter:
         for routine, stamps in calls.items():
             data["calls"][routine] = data["calls"].get(routine, []) + stamps
         for routine, until in blocked.items():
-            data["blocked_until"][routine] = max(until, data["blocked_until"].get(routine, 0.0))
+            data["blocked_until"][routine] = max(
+                until, data["blocked_until"].get(routine, 0.0)
+            )
 
     def _rejoined(self) -> None:
         if self._fell_back_at is not None:
@@ -249,7 +260,9 @@ class SharedRateLimiter:
                     self._carry_back(data)
                 self._prune(data, now)
                 for routine in self._limits:
-                    data["blocked_until"][routine] = max(now + seconds, data["blocked_until"].get(routine, 0.0))
+                    data["blocked_until"][routine] = max(
+                        now + seconds, data["blocked_until"].get(routine, 0.0)
+                    )
                 self._write(data)
             self._rejoined()
         except OSError as e:
@@ -260,7 +273,9 @@ class Cache:
     """Answers with their age. Entries outlive their TTL so a stale answer can
     stand in when the limit is reached or the source is down."""
 
-    def __init__(self, max_entries: int = 256, clock: Callable[[], float] = time.monotonic) -> None:
+    def __init__(
+        self, max_entries: int = 256, clock: Callable[[], float] = time.monotonic,
+    ) -> None:
         self._max = max_entries
         self._clock = clock
         self._data: dict[str, tuple[float, float, Any]] = {}  # key -> (stored, ttl, value)
@@ -316,7 +331,10 @@ class SharedCache:
 
     def _warn(self, error: Exception) -> None:
         if not self._warned:
-            log.warning("can't share cached answers through %s (%s); this process keeps its own", self._path, error)
+            log.warning(
+                "can't share cached answers through %s (%s); this process keeps its own",
+                self._path, error,
+            )
             self._warned = True
 
     def _read(self) -> dict[str, list[Any]]:
