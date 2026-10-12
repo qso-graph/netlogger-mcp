@@ -9,10 +9,11 @@ from importlib.resources import files
 from typing import Any
 
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
 
 from . import __contract_version__, __spec_version__, __version__, settings
 from .limiter import Cache, RateLimiter, SharedCache, SharedRateLimiter
-from .netlogger import LIMITS, NetLoggerError, NetLoggerSource, as_of_utc
+from .netlogger import LIMITS, NetLoggerError, NetLoggerSource
 from .paths import cache_file, limits_file
 
 mcp = FastMCP(
@@ -70,13 +71,22 @@ class NeedsCallsign(Exception):
     pass
 
 
-NEEDS_CALLSIGN = {
-    "error": "netlogger-mcp needs the user's callsign before it can ask NetLogger. "
-             "Every request tells NetLogger which station is asking.",
-    "needs_callsign": True,
-    "next_step": "Ask the user for their amateur radio callsign, then call "
-                 "netlogger_set_callsign with it. It is asked only once.",
-}
+# Not an error message so much as an instruction: the tool declined to act and
+# the caller can fix it in one step. Since #46 it is raised rather than
+# returned, so a client sees a failure *and* is told what to do — which is the
+# case the specification describes when it says a model must be able to "see
+# that an error occurred and self-correct".
+#
+# The whole text goes in the message. The old payload carried `needs_callsign`
+# and `next_step` as separate fields, and nothing but one test ever read them;
+# a field only readable by something parsing our payload is the channel this
+# change exists to stop using.
+NEEDS_CALLSIGN_MESSAGE = (
+    "netlogger-mcp needs the user's callsign before it can ask NetLogger. "
+    "Every request tells NetLogger which station is asking. "
+    "Ask the user for their amateur radio callsign, then call "
+    "netlogger_set_callsign with it. It is asked only once."
+)
 
 
 def _get_source() -> NetLoggerSource:
@@ -97,12 +107,14 @@ def _run(method: str, *args: Any) -> dict[str, Any]:
     try:
         answer: dict[str, Any] = getattr(_get_source(), method)(*args)
         return answer
-    except NeedsCallsign:
-        return {**NEEDS_CALLSIGN, "as_of_utc": as_of_utc()}
+    except NeedsCallsign as e:
+        raise ToolError(NEEDS_CALLSIGN_MESSAGE) from e
     except NetLoggerError as e:
-        return {"error": str(e), "as_of_utc": as_of_utc()}
-    except Exception:
-        return {"error": "netlogger-mcp hit an unexpected problem", "as_of_utc": as_of_utc()}
+        raise ToolError(str(e)) from e
+    except Exception as e:
+        # Deliberately not str(e): this branch catches what was not foreseen,
+        # and an unforeseen exception's text is not known to be safe to show.
+        raise ToolError("netlogger-mcp hit an unexpected problem") from e
 
 
 def _version_info_payload() -> dict[str, Any]:
@@ -114,7 +126,49 @@ def _version_info_payload() -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+# MCP 2026-07-28 tool annotations. The defaults are pessimistic — a tool that
+# declares nothing is advertised as destructive, non-idempotent and open-world,
+# and the specification tells a client to keep a human in the loop for an
+# operation like that.
+#
+# This server is the first in the fleet sweep where they are not all alike,
+# because netlogger_set_callsign is the first tool that is not read-only: it
+# writes the callsign to a settings file. Its hints are set out beside it
+# rather than here, because a reader skimming this block should not come away
+# thinking every tool reads.
+_READS_NETLOGGER = {
+    "readOnlyHint": True,
+    "destructiveHint": False,
+    "idempotentHint": True,
+    # Reaches NetLogger, which is outside this host.
+    "openWorldHint": True,
+}
+_ANSWERS_FROM_THE_PACKAGE = {
+    "readOnlyHint": True,
+    "destructiveHint": False,
+    "idempotentHint": True,
+    # Reports versions carried in the wheel. It opens no connection.
+    "openWorldHint": False,
+}
+_SAVES_THE_CALLSIGN = {
+    # The one tool here that writes. It saves the operator's callsign to a
+    # settings file, so readOnlyHint is false and saying otherwise would be a
+    # plain untruth about what the tool does.
+    "readOnlyHint": False,
+    # It replaces one value the operator set themselves. The specification
+    # reserves destructive for updates that destroy — this overwrites a single
+    # setting with the caller's own new value, and nothing else is lost.
+    "destructiveHint": False,
+    # Saving the same callsign twice leaves the same state, so a client may
+    # safely retry it.
+    "idempotentHint": True,
+    # It writes locally and opens no connection; NetLogger is not told
+    # anything until the next lookup.
+    "openWorldHint": False,
+}
+
+
+@mcp.tool(annotations=_ANSWERS_FROM_THE_PACKAGE)
 def get_version_info() -> dict[str, Any]:
     """Get netlogger-mcp's version, the NetLogger API version it is built for, and
     the version of the records it returns.
@@ -125,7 +179,7 @@ def get_version_info() -> dict[str, Any]:
     return _version_info_payload()
 
 
-@mcp.tool()
+@mcp.tool(annotations=_SAVES_THE_CALLSIGN)
 def netlogger_set_callsign(callsign: str) -> dict[str, Any]:
     """Save the user's amateur radio callsign. Needed once, before the first lookup.
 
@@ -142,14 +196,14 @@ def netlogger_set_callsign(callsign: str) -> dict[str, Any]:
     try:
         saved = settings.save_callsign(callsign)
     except NetLoggerError as e:
-        return {"error": str(e)}
-    except OSError:
-        return {"error": "the callsign couldn't be saved to the settings file"}
+        raise ToolError(str(e)) from e
+    except OSError as e:
+        raise ToolError("the callsign couldn't be saved to the settings file") from e
     _source = None  # the next call identifies as the new callsign
     return {"callsign": saved, "saved": True}
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READS_NETLOGGER)
 def netlogger_active_nets(name_like: str | None = "") -> dict[str, Any]:
     """List nets on the air now.
 
@@ -168,7 +222,7 @@ def netlogger_active_nets(name_like: str | None = "") -> dict[str, Any]:
     return _run("active_nets", name_like or "")
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READS_NETLOGGER)
 def netlogger_checkins(server_name: str, net_name: str) -> dict[str, Any]:
     """Get a live net's check-in list, and the pointer: the serial number of the
     station net control is working now.
@@ -188,7 +242,7 @@ def netlogger_checkins(server_name: str, net_name: str) -> dict[str, Any]:
     return _run("checkins", server_name, net_name)
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READS_NETLOGGER)
 def netlogger_past_nets(interval_days: int | None = 7, name_like: str | None = "") -> dict[str, Any]:
     """List closed nets over the last few days, with the net IDs netlogger_past_checkins needs.
 
@@ -203,7 +257,7 @@ def netlogger_past_nets(interval_days: int | None = 7, name_like: str | None = "
     return _run("past_nets", interval_days if interval_days is not None else 7, name_like or "")
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READS_NETLOGGER)
 def netlogger_past_checkins(server_name: str, net_name: str, net_id: str) -> dict[str, Any]:
     """Get a closed net's check-in list.
 
