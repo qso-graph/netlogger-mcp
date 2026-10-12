@@ -9,6 +9,10 @@ requires-python = ">=3.10"
 dependencies = [
     "fastmcp>=4.0,<5",
     "defusedxml>=0.7",
+    # The root set TLS verifies against, so it is a dependency this project
+    # updates rather than whichever store the running Python was built
+    # against (qso-graph-devel#73).
+    "certifi",
 ]
 keywords = [
     "amateur-radio", "ham-radio", "netlogger", "net-control", "check-ins",
