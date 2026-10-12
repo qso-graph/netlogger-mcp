@@ -22,7 +22,8 @@ from netlogger_mcp.limiter import Cache, RateLimiter
 from netlogger_mcp.netlogger import LIMITS, NetLoggerSource, parse
 
 SCHEMA = json.loads(
-    (Path(__file__).parent.parent / "src/netlogger_mcp/schema/contract.schema.json").read_text()
+    (Path(__file__).parent.parent
+     / "src/netlogger_mcp/schema/contract.schema.json").read_text()
 )
 
 
@@ -38,8 +39,10 @@ def validate(instance: dict, definition: str) -> None:
 def nl() -> NetLoggerSource:
     def fetch(url: str):
         return 200, real(url.split("/api/")[1].split(".php")[0]), None
-    return NetLoggerSource("N0CALL", fetch=fetch, limiter=RateLimiter(LIMITS, clock=lambda: 0.0),
-                           cache=Cache(clock=lambda: 0.0))
+    return NetLoggerSource(
+        "N0CALL", fetch=fetch, limiter=RateLimiter(LIMITS, clock=lambda: 0.0),
+        cache=Cache(clock=lambda: 0.0),
+    )
 
 
 class TestRealResponses:
@@ -47,7 +50,8 @@ class TestRealResponses:
         r = nl.active_nets()
         validate(r, "net_list")
         assert r["total"] == 7
-        assert all(n["opened"].endswith("Z") for n in r["nets"])  # "YYYY-MM-DD hh:mm:ss" read as UTC
+        # NetLogger's "YYYY-MM-DD hh:mm:ss" is read as UTC.
+        assert all(n["opened"].endswith("Z") for n in r["nets"])
 
     def test_free_text_frequency_is_kept_but_not_read(self, nl):
         alaska = next(n for n in nl.active_nets()["nets"] if n["name"] == "Alaska morning net")
@@ -61,14 +65,19 @@ class TestRealResponses:
     def test_checkins_fit_the_contract(self, nl):
         r = nl.checkins("NETLOGGER", "Alaska morning net")
         validate(r, "checkin_list")
-        assert r["checkin_count"] == 10 and r["pending_serials"] == [20] and r["source_checkin_count"] == 11
+        assert r["checkin_count"] == 10
+        assert r["pending_serials"] == [20]
+        assert r["source_checkin_count"] == 11
         assert r["pointer"] == 5 and r["pointer_callsign"] == "K2CALL"
         # Role markers as NetLogger sends them, combined ones included.
-        assert [c["status"] for c in r["checkins"] if "status" in c] == ["(nc),(log)", "(m)", "(c/o)"]
+        assert [c["status"] for c in r["checkins"] if "status" in c] == [
+            "(nc),(log)", "(m)", "(c/o)",
+        ]
 
     def test_empty_member_id_is_omitted(self, nl):
         """On a net that isn't a club's, MemberID is present but empty."""
-        assert all("member_id" not in c for c in nl.checkins("NETLOGGER", "Alaska morning net")["checkins"])
+        checkins = nl.checkins("NETLOGGER", "Alaska morning net")["checkins"]
+        assert all("member_id" not in c for c in checkins)
 
     def test_past_nets_fit_the_contract(self, nl):
         r = nl.past_nets(1)
@@ -79,9 +88,14 @@ class TestRealResponses:
         assert net["aim"] is True and net["auto_closed"] is False
 
     def test_unreadable_frequencies_stay_unread(self, nl):
-        unread = sorted(n["frequency"] for n in nl.past_nets(1)["nets"] if "frequency_mhz" not in n)
-        # As loggers typed them: a doubled decimal point, a reflector, a stray space, a callsign.
-        assert "7.185.5" in unread and "REF 35C" in unread and "14. 290" in unread and "14.332.00" in unread
+        unread = sorted(
+            n["frequency"] for n in nl.past_nets(1)["nets"]
+            if "frequency_mhz" not in n
+        )
+        # As loggers typed them: a doubled decimal point, a reflector, a stray
+        # space, a callsign.
+        for typed in ("7.185.5", "REF 35C", "14. 290", "14.332.00"):
+            assert typed in unread
 
     def test_past_checkins_fit_the_contract(self, nl):
         r = nl.past_checkins("NETLOGGER", "Pacific RV Service Net", "440529")

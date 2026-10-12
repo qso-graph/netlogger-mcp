@@ -32,7 +32,8 @@ def path(tmp_path) -> Path:
 
 def two(path: Path, clock: Clock) -> tuple[SharedRateLimiter, SharedRateLimiter]:
     """Two copies of the server, e.g. Claude Desktop and Claude Code."""
-    return SharedRateLimiter(LIMITS, path, clock=clock), SharedRateLimiter(LIMITS, path, clock=clock)
+    return (SharedRateLimiter(LIMITS, path, clock=clock),
+            SharedRateLimiter(LIMITS, path, clock=clock))
 
 
 class TestOneBudget:
@@ -41,7 +42,8 @@ class TestOneBudget:
         assert a.try_acquire("GetCheckins") == 0
         assert b.try_acquire("GetCheckins") == 0
         assert a.try_acquire("GetCheckins") == 0
-        assert b.try_acquire("GetCheckins") > 0  # the fourth call this minute, from either copy
+        # The fourth call this minute, from either copy.
+        assert b.try_acquire("GetCheckins") > 0
         assert a.try_acquire("GetCheckins") > 0
 
     def test_window_rolls(self, path, clock):
@@ -82,7 +84,10 @@ class TestOneBudget:
 
 
 class TestNeverFailsOpen:
-    @pytest.mark.parametrize("junk", ["", "not json", "[]", '{"calls": 5}', '{"calls": {"GetCheckins": ["x"]}, "blocked_until": {}}'])
+    @pytest.mark.parametrize("junk", [
+        "", "not json", "[]", '{"calls": 5}',
+        '{"calls": {"GetCheckins": ["x"]}, "blocked_until": {}}',
+    ])
     def test_unreadable_file_means_wait_a_window(self, path, clock, junk, caplog):
         path.write_text(junk)
         a = SharedRateLimiter(LIMITS, path, clock=clock)
@@ -101,7 +106,9 @@ class TestNeverFailsOpen:
         assert a.try_acquire("GetActiveNets") == 0
 
     def test_absurd_back_off_is_capped(self, path, clock):
-        path.write_text(json.dumps({"calls": {}, "blocked_until": {"GetCheckins": clock.now + 10**9}}))
+        path.write_text(json.dumps(
+            {"calls": {}, "blocked_until": {"GetCheckins": clock.now + 10**9}},
+        ))
         a = SharedRateLimiter(LIMITS, path, clock=clock)
         assert a.try_acquire("GetCheckins") == pytest.approx(MAX_BLOCK)
 
@@ -110,7 +117,8 @@ class TestNeverFailsOpen:
         blocker.write_text("")
         a = SharedRateLimiter(LIMITS, blocker / "limits.json")  # its folder can't be created
         with caplog.at_level("WARNING", logger="netlogger_mcp"):
-            assert a.try_acquire("GetCheckins") > 0  # a full window first: we can't see what was spent
+            # A full window first: we can't see what was spent.
+            assert a.try_acquire("GetCheckins") > 0
         assert "can't share call limits" in caplog.text
         assert a.try_acquire("GetActiveNets") > 0
 
@@ -125,7 +133,10 @@ def test_real_processes_racing(tmp_path):
     """Six real processes grab GetCheckins slots at the same moment: exactly three get one."""
     ctx = multiprocessing.get_context("spawn")
     start, out = ctx.Event(), ctx.Queue()
-    procs = [ctx.Process(target=_grab, args=(str(tmp_path / "limits.json"), start, out)) for _ in range(6)]
+    procs = [
+        ctx.Process(target=_grab, args=(str(tmp_path / "limits.json"), start, out))
+        for _ in range(6)
+    ]
     for p in procs:
         p.start()
     start.set()
@@ -140,7 +151,8 @@ def _acquire_once(path: str, out) -> None:
 
 
 def test_another_process_waits_for_the_lock(tmp_path):
-    """Deterministic: while one process holds the lock, another can't read or spend the budget."""
+    """Deterministic: while one process holds the lock, another can't read or
+    spend the budget."""
     import queue
 
     from netlogger_mcp.limiter import _file_lock
@@ -200,7 +212,8 @@ class TestRejoin:
         assert a.try_acquire("GetCheckins") == 0  # t=100: a call on its own budget
         glitch.on = False
         clock.now += 20
-        assert a.try_acquire("GetPastNets") == 0  # t=120: a window since the last failure; rejoins
+        # t=120: a window since the last failure; rejoins.
+        assert a.try_acquire("GetPastNets") == 0
         # The t=100 GetCheckins call came back with it: only 2 more this minute, not 3.
         assert b.try_acquire("GetCheckins") == 0
         assert b.try_acquire("GetCheckins") == 0

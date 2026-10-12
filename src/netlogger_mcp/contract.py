@@ -25,7 +25,8 @@ NET_FIELDS: dict[str, tuple[str, ...]] = {
     "last_activity": ("LastActivity",),
     "aim": ("AIM",),
     "aim_update_ms": ("UpdateInterval",),
-    "inactivity_timeout_minutes": ("InactivityTimer", "InactivitytTimer"),  # the spec spells it both ways
+    # NetLogger's specification spells this field both ways; both are read.
+    "inactivity_timeout_minutes": ("InactivityTimer", "InactivitytTimer"),
     "auto_closed": ("Assassinated",),
 }
 
@@ -46,7 +47,9 @@ CHECKIN_FIELDS: dict[str, tuple[str, ...]] = {
     "member_id": ("MemberID",),
 }
 
-INT_FIELDS = {"monitoring", "net_id", "aim_update_ms", "inactivity_timeout_minutes", "serial", "dxcc"}
+INT_FIELDS = {
+    "monitoring", "net_id", "aim_update_ms", "inactivity_timeout_minutes", "serial", "dxcc",
+}
 BOOL_FIELDS = {"aim", "auto_closed"}  # Y/N
 TIME_FIELDS = {"opened", "closed", "last_activity"}
 

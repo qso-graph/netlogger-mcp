@@ -59,7 +59,8 @@ def test_after_the_ttl_the_shared_answer_is_marked_stale(tmp_path, clock):
 
 
 def test_newest_answer_wins(tmp_path, clock):
-    c1, c2 = SharedCache(tmp_path / "cache.json", clock=clock), SharedCache(tmp_path / "cache.json", clock=clock)
+    path = tmp_path / "cache.json"
+    c1, c2 = SharedCache(path, clock=clock), SharedCache(path, clock=clock)
     c1.set("k", "old", 60)
     clock.now += 10
     c2.set("k", "new", 60)
@@ -94,4 +95,5 @@ def test_the_file_stays_bounded(tmp_path, clock):
 def test_every_answer_has_as_of_and_active_nets_lists_servers(tmp_path, clock):
     r = copy(tmp_path, clock, FakeNetLogger()).active_nets(name_like="no such net")
     assert r["total"] == 0 and r["as_of_utc"].endswith("Z")
-    assert r["servers"] and all(s["nets"] > 0 for s in r["servers"])  # what NetLogger listed, before the filter
+    # What NetLogger listed, before the filter.
+    assert r["servers"] and all(s["nets"] > 0 for s in r["servers"])

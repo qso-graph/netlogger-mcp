@@ -65,21 +65,23 @@ extend-exclude = [".venv", "dist", "build", ".eggs", ".pytest_cache", "site", "s
 
 [tool.ruff.lint]
 # F and I are the rules that find defects: an unused import, an undefined name,
-# an import block out of order. They run here from the start.
+# an import block out of order. They ran here from the start.
 #
 # E501 is a width, and it is adif-mcp's width — these repos were not written to
-# it. On cq-zones-mcp it reported 39 lines and not one of them was a defect, so
-# it is deferred to a pass of its own rather than reflowing several hundred
-# lines of prose across sixteen repos (qso-graph-devel#70).
+# it. It was deferred (qso-graph-devel#70) because on cq-zones-mcp it reported
+# 39 lines and not one of them was a defect: the rules that find defects went in
+# first and this one waited. That pass is now done here (#45). E501 reported 105
+# lines in this repo, and not one of them was a defect either — which is the
+# finding, not an argument against enforcing it. A consistent width is worth
+# having; it just was never the thing holding the quality.
 #
-# Six of those 39 will not be reflowed at all, whenever that pass happens.
-# They are long because they name a publisher's field exactly —
-# `pas["Adif"]["Enumerations"]["Primary_Administrative_Subdivision"]["Records"]`
-# — and this project's rule is that the owner of a list is its authority, so we
-# use ADIF's names and not shorter ones of our own. There the length is the
-# correctness.
+# One line is exempt, at the line rather than the file, and it names what is
+# exempted: tests/test_netlogger.py asserts NetLogger's own query string
+# whole, because the test is that we send exactly that. Split across two
+# literals it stops being greppable against NetLogger's documentation, which
+# is the reason for asserting the URL instead of the parameters. There the
+# length is the correctness.
 select = ["E", "F", "I"]
-ignore = ["E501"]
 fixable = ["I"]
 
 [tool.mypy]

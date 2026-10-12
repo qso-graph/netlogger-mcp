@@ -208,7 +208,8 @@ def netlogger_active_nets(name_like: str | None = "") -> dict[str, Any]:
     """List nets on the air now.
 
     Args:
-        name_like: Only nets whose name contains this text, ignoring case (e.g. ARES). Empty for all.
+        name_like: Only nets whose name contains this text, ignoring case
+            (e.g. ARES). Empty for all.
 
     Returns:
         Nets with server, name, frequency, band, mode, net control, logger, when
@@ -243,18 +244,23 @@ def netlogger_checkins(server_name: str, net_name: str) -> dict[str, Any]:
 
 
 @mcp.tool(annotations=_READS_NETLOGGER)
-def netlogger_past_nets(interval_days: int | None = 7, name_like: str | None = "") -> dict[str, Any]:
+def netlogger_past_nets(
+    interval_days: int | None = 7, name_like: str | None = "",
+) -> dict[str, Any]:
     """List closed nets over the last few days, with the net IDs netlogger_past_checkins needs.
 
     Args:
-        interval_days: How many days back (default 7). Over 7 needs name_like (NetLogger's rule).
+        interval_days: How many days back (default 7). Over 7 needs name_like
+            (NetLogger's rule).
         name_like: Only nets whose name contains this text (e.g. ARES).
 
     Returns:
         Past nets with server, name, net ID, frequency, band, mode, net control,
         opened and closed times.
     """
-    return _run("past_nets", interval_days if interval_days is not None else 7, name_like or "")
+    return _run(
+        "past_nets", interval_days if interval_days is not None else 7, name_like or "",
+    )
 
 
 @mcp.tool(annotations=_READS_NETLOGGER)
@@ -272,7 +278,8 @@ def netlogger_past_checkins(server_name: str, net_name: str, net_id: str) -> dic
     return _run("past_checkins", server_name, net_name, net_id)
 
 
-USAGE = """usage: netlogger-mcp [--transport stdio|streamable-http] [--port N] [--version] [--help]
+USAGE = """\
+usage: netlogger-mcp [--transport stdio|streamable-http] [--port N] [--version] [--help]
 
 An MCP server: an AI app (Claude Desktop, Claude Code, ...) starts it and talks
 to it over stdio. Run on its own it waits for that app; press Ctrl-C to stop.
