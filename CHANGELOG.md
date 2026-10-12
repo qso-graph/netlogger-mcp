@@ -1,26 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-10-12)
 
-- **`E501` is adopted** (#45, qso-graph-devel#70). It reported **105 lines**, and **not one of them
-  was a defect** — which is the finding, not an argument against enforcing it. A consistent width
-  is worth having; it just was never the thing holding the quality. The rules that do find defects
-  (`F`, `I`, mypy strict) went in first, which is why this waited.
-- **One line is exempt**, at the line rather than the file, and the config names what is exempted:
-  `tests/test_netlogger.py` asserts NetLogger's own query string whole, because the test is that we
-  send exactly that. Split across two literals it stops being greppable against NetLogger's
-  documentation, which is the reason for asserting the URL instead of its parameters. There the
-  length is the correctness. It is the only `# noqa: E501` in the repo, and removing it makes
-  `ruff` fail — so it is needed rather than decorative.
-- `USAGE` now opens with a line continuation so the synopsis sits under the width without being
-  wrapped. The printed `--help` text is byte-for-byte what it was (same SHA-256): wrapping a usage
-  synopsis would be a change to what a user reads, not formatting.
-- **Two things on the wire change, and only these two.** Reflowing an `Args:` line puts a newline
-  into the parameter description FastMCP publishes in `inputSchema`, so
-  `netlogger_active_nets.name_like` and `netlogger_past_nets.interval_days` each gain a `\n`. The
-  tool schemas were dumped through a real client before and after, and nothing else differs. Said
-  here because the rest of this is formatting, and a reader is entitled to assume formatting
-  changes nothing.
+The minor version moves because two things a caller may have relied on now behave differently.
 
 **Upgrading:** a tool that fails now returns `isError: true` instead of a successful result whose
 payload carried an `error` key. Anything reading `result["error"]` should read the error flag.
@@ -29,6 +11,8 @@ payload carried an `error` key. Anything reading `result["error"]` should read t
 `needs_callsign: true` and a `next_step`. It is now a flagged error whose message is the whole of
 that instruction. A caller that read `needs_callsign` should instead read the error flag; the text
 still says exactly what to do and names `netlogger_set_callsign`.
+
+### MCP specification 2026-07-28 (#46)
 
 - **Tool errors are flagged `isError`** (#46). Five error returns in `src/` arrived on the wire as
   successful results, so a client could not tell "the tool answered" from "the tool refused". The
@@ -62,6 +46,9 @@ still says exactly what to do and names `netlogger_set_callsign`.
   settings file, and a **refused** callsign leaves no file behind.
 - `as_of_utc` was on the error payloads as well as the successful ones. It is unchanged for a
   successful answer, which gets it from the source layer, and a test says so.
+
+### TLS (#44, qso-graph-devel#73)
+
 - **`certifi` is carried, and the fetch verifies against it** (#44, qso-graph-devel#73). The one
   `urlopen` in `netlogger.py` passed no context, so it trusted whichever root store the running
   Python was built against. On macOS that is `/etc/ssl/cert.pem`, a deliberately *reduced*
@@ -91,6 +78,35 @@ still says exactly what to do and names `netlogger_set_callsign`.
 - `test_every_outbound_call_verifies` scans the whole package line by line, not one file: there is
   one fetch here today, and a check written against the file you happen to be editing is a check
   that misses the second one. Falsified by adding a second fetch path with no context.
+
+### Lint (#45, qso-graph-devel#70)
+
+- **`E501` is adopted** (#45, qso-graph-devel#70). It reported **105 lines**, and **not one of them
+  was a defect** — which is the finding, not an argument against enforcing it. A consistent width
+  is worth having; it just was never the thing holding the quality. The rules that do find defects
+  (`F`, `I`, mypy strict) went in first, which is why this waited.
+- **One line is exempt**, at the line rather than the file, and the config names what is exempted:
+  `tests/test_netlogger.py` asserts NetLogger's own query string whole, because the test is that we
+  send exactly that. Split across two literals it stops being greppable against NetLogger's
+  documentation, which is the reason for asserting the URL instead of its parameters. There the
+  length is the correctness. It is the only `# noqa: E501` in the repo, and removing it makes
+  `ruff` fail — so it is needed rather than decorative.
+- `USAGE` now opens with a line continuation so the synopsis sits under the width without being
+  wrapped. The printed `--help` text is byte-for-byte what it was (same SHA-256): wrapping a usage
+  synopsis would be a change to what a user reads, not formatting.
+- **Two things on the wire change, and only these two.** Reflowing an `Args:` line puts a newline
+  into the parameter description FastMCP publishes in `inputSchema`, so
+  `netlogger_active_nets.name_like` and `netlogger_past_nets.interval_days` each gain a `\n`. The
+  tool schemas were dumped through a real client before and after, and nothing else differs. Said
+  here because the rest of this is formatting, and a reader is entitled to assume formatting
+  changes nothing.
+
+### Docs
+
+- The README's User-Agent example said `netlogger-mcp/0.1.9` directly above the sentence "the
+  version is the installed one — it is read from the package, not written here". 0.1.10 set out to
+  stop freezing a number there and froze a newer one instead. The example now reads
+  `netlogger-mcp/<version>`, which is what the sentence claims and cannot go stale.
 
 ## 0.1.10 (2026-10-11)
 
