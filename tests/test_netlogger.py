@@ -420,15 +420,53 @@ class TestCallsign:
             def __exit__(self, *a):
                 return False
 
-        def urlopen(req, timeout):
+        def urlopen(req, timeout, context=None):
             seen["ua"] = req.get_header("User-agent")
             seen["url"] = req.full_url
+            seen["context"] = context
             return Resp()
 
         monkeypatch.setattr("urllib.request.urlopen", urlopen)
         NetLoggerSource("KI7MT").active_nets()
         assert "(KI7MT; " in seen["ua"]
         assert seen["url"].startswith("https://")
+
+    def test_real_requests_verify_the_certificate(self, monkeypatch):
+        """The context reaches urlopen, and it is one that checks certificates.
+
+        test_security.py greps the call for ``context=_context()``; this watches
+        the object arrive and asks it what it will do. A grep cannot tell a
+        verifying context from one built with verification turned off.
+        """
+        import ssl
+
+        seen = {}
+
+        class Resp:
+            status = 200
+            headers = {}
+
+            def read(self, n):
+                return sample("GetActiveNets")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        def urlopen(req, timeout, context=None):
+            seen["context"] = context
+            return Resp()
+
+        monkeypatch.setattr("urllib.request.urlopen", urlopen)
+        NetLoggerSource("KI7MT").active_nets()
+
+        context = seen["context"]
+        assert context is not None, "the fetch opened a connection with no context"
+        assert context.verify_mode == ssl.CERT_REQUIRED
+        assert context.check_hostname is True
+        assert context.get_ca_certs(), "the context carries no roots to verify against"
 
 
 class TestProgramId:

@@ -42,6 +42,35 @@ still says exactly what to do and names `netlogger_set_callsign`.
   settings file, and a **refused** callsign leaves no file behind.
 - `as_of_utc` was on the error payloads as well as the successful ones. It is unchanged for a
   successful answer, which gets it from the source layer, and a test says so.
+- **`certifi` is carried, and the fetch verifies against it** (#44, qso-graph-devel#73). The one
+  `urlopen` in `netlogger.py` passed no context, so it trusted whichever root store the running
+  Python was built against. On macOS that is `/etc/ssl/cert.pem`, a deliberately *reduced*
+  OpenSSL-compatibility file: current, not stale, but it omits roots the OS itself trusts, so a
+  certificate chaining to one of them fails for Python while `curl` to the same URL succeeds.
+- **Measured, not assumed:** `www.netlogger.org` chains through Let's Encrypt's `YR1` to ISRG
+  `Root YR`, and verifies against Apple's file and against `certifi` alike today. So this was
+  latent rather than an outage. What it buys is that the root set is now a dependency this project
+  updates, rather than a file the operating system hands us — and the same one `requests` and
+  `httpx` would have used had this fleet not been written against stdlib `urllib`.
+- `certifi` holds *fewer* roots than Apple's file (121 against 128), so the point is not a bigger
+  set. It is the right set, chosen by Mozilla's root program.
+- This server holds no credential — a callsign is public — so a trust failure costs an answer
+  rather than a secret. But it would cost it invisibly: the user is told only that NetLogger
+  couldn't be reached, with nothing pointing at trust. Verification is never disabled;
+  `ssl.CERT_NONE` would make a call "work" by accepting any certificate from anyone, which is a
+  worse defect than this one and a silent one.
+- **`certifi` is declared in `[project] dependencies`, and a test says so.** Measured: it is *not*
+  a transitive dependency of `fastmcp>=4.0,<5` + `defusedxml` — that pair resolves 85 packages and
+  `certifi` is not among them. An undeclared import here would be an ImportError at startup for
+  anyone who ran `pip install netlogger-mcp`, so this is a hard failure rather than a latent one.
+- Four static checks in `tests/test_security.py` (verification never disabled, the root set carried
+  not borrowed, `certifi` declared, every outbound call verifying) and one behavioural check in
+  `tests/test_netlogger.py` that watches the context arrive at `urlopen` and asks what it will do.
+  The behavioural one exists because a grep cannot tell a verifying context from one built with
+  verification switched off — falsified exactly that way, and it caught it.
+- `test_every_outbound_call_verifies` scans the whole package line by line, not one file: there is
+  one fetch here today, and a check written against the file you happen to be editing is a check
+  that misses the second one. Falsified by adding a second fetch path with no context.
 
 ## 0.1.10 (2026-10-11)
 
