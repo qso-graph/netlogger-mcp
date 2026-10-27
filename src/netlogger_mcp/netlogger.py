@@ -15,6 +15,7 @@ can tell users and programs apart. There is no anonymous mode.
 from __future__ import annotations
 
 import logging
+import math
 import re
 import ssl
 import threading
@@ -381,6 +382,12 @@ def _retry_after(header: str | None) -> float:
         seconds = float(header) if header else 0.0
     except ValueError:
         seconds = 0.0
+    # "nan" and "inf" parse as floats, and nan defeats the clamp below: every
+    # comparison against it is False, so it would survive into a deadline that
+    # is then never in the future, leaving the backoff off altogether. A header
+    # we cannot make sense of means the floor.
+    if not math.isfinite(seconds):
+        seconds = 0.0
     return min(max(seconds, MIN_BACKOFF), MAX_BACKOFF)
 
 
@@ -442,7 +449,13 @@ class NetLoggerSource:
 
             # NetLogger's 429 is anti-flooding aimed at the client, and every routine
             # hits the same server, so a 429 on one stops them all.
-            if status == 429:
+            #
+            # A 503 counts too, but only when it carries Retry-After: that is a
+            # server shedding load deliberately, which is a stated limit and
+            # asking again before it said to is the thing guarantee 8 forbids.
+            # A bare 503 stays an outage below, because the site may come back
+            # in seconds and an outage lets the user try again.
+            if status == 429 or (status == 503 and retry_after):
                 self._limiter.block_all(_retry_after(retry_after))
                 return self._stale_or_raise(
                     hit, RateLimited(routine, _retry_after(retry_after))

@@ -354,6 +354,31 @@ class TestTooManyRequests:
         nl.past_checkins("NETLOGGER", "Net", 2)
         assert len(fake.urls) == 2
 
+    def test_a_503_with_retry_after_is_a_limit(self, clock):
+        """A server shedding load deliberately is stating a limit, so it is
+        honoured the same way a 429 is."""
+        fake = FakeNetLogger(status=503, body=b"", retry_after="90")
+        nl = NetLoggerSource(
+            "N0CALL", fetch=fake,
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
+        with pytest.raises(RateLimited) as e:
+            nl.past_checkins("NETLOGGER", "Net", 1)
+        assert e.value.retry_after == 90
+
+    def test_a_bare_503_is_an_outage_not_a_limit(self, clock):
+        """No Retry-After means the site failed rather than asked, and it may
+        come back in seconds -- so the next request is allowed through."""
+        fake = FakeNetLogger(status=503, body=b"")
+        nl = NetLoggerSource(
+            "N0CALL", fetch=fake,
+            limiter=RateLimiter(LIMITS, clock=clock), cache=Cache(clock=clock),
+        )
+        with pytest.raises(NetLoggerError) as e:
+            nl.past_checkins("NETLOGGER", "Net", 1)
+        assert not isinstance(e.value, RateLimited)
+        assert "503" in str(e.value)
+
     def test_429_on_one_routine_stops_them_all(self, clock):
         fake = FakeNetLogger(status=429, body=b"")
         nl = NetLoggerSource(
