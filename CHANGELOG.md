@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A `503` carrying `Retry-After` is now honoured as a limit.** A `429` always
+  was; a `503` was treated as an outage whatever it carried, so NetLogger
+  shedding load deliberately and saying when to come back was answered sooner
+  than it asked. A bare `503` is still an outage, because the site may come back
+  in seconds and an outage lets the next request through.
+
 ### Changed
 
 - **Python 3.11 is the minimum.** 3.10 reached end of life in October 2026

@@ -442,7 +442,13 @@ class NetLoggerSource:
 
             # NetLogger's 429 is anti-flooding aimed at the client, and every routine
             # hits the same server, so a 429 on one stops them all.
-            if status == 429:
+            #
+            # A 503 counts too, but only when it carries Retry-After: that is a
+            # server shedding load deliberately, which is a stated limit and
+            # asking again before it said to is the thing guarantee 8 forbids.
+            # A bare 503 stays an outage below, because the site may come back
+            # in seconds and an outage lets the user try again.
+            if status == 429 or (status == 503 and retry_after):
                 self._limiter.block_all(_retry_after(retry_after))
                 return self._stale_or_raise(
                     hit, RateLimited(routine, _retry_after(retry_after))
