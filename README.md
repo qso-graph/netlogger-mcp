@@ -37,7 +37,7 @@ Every request tells NetLogger which station is asking, so it can tell one user f
 netlogger-mcp/<version> (KI7MT; +https://github.com/qso-graph/netlogger-mcp)
 ```
 
-The version is the installed one — it is read from the package, not written here.
+The version is the installed one—it is read from the package, not written here.
 
 On first use the assistant asks for your callsign and saves it. You're asked once. To set it yourself, use `NETLOGGER_MCP_CALLSIGN=KI7MT`.
 
@@ -62,7 +62,7 @@ NetLogger is a donation-funded service on one server, and it limits how often ea
 
 ## Bands and Frequencies
 
-NetLogger's band and frequency are whatever the logger typed ("40M", "75M", "DMR", "7033", "3918 KHz", "147.030 91.5", "TG 3141"). They're returned as typed, and beside them, only when the text can be read reliably: `frequency_mhz`, `band_adif` (the ADIF band, from ADIF 3.1.7's Band enumeration), `tone_hz` and `talkgroup`. A frequency outside the amateur bands (e.g. GMRS) gets no `band_adif`.
+NetLogger's band and frequency are whatever the logger typed (`40M`, `75M`, `DMR`, `7033`, `3918 KHz`, `147.030 91.5`, `TG 3141`). They're returned as typed, and beside them, only when the text can be read reliably: `frequency_mhz`, `band_adif` (the ADIF band, from ADIF 3.1.7's Band enumeration), `tone_hz` and `talkgroup`. A frequency outside the amateur bands (for example, GMRS) gets no `band_adif`.
 
 ## Privacy
 
