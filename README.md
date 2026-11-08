@@ -43,7 +43,7 @@ On first use the assistant asks for your callsign and saves it. You're asked onc
 
 It's saved in `settings.json`, in `~/.config/netlogger-mcp/` (Linux), `~/Library/Application Support/netlogger-mcp/` (macOS) or `%APPDATA%\netlogger-mcp\` (Windows).
 
-## Good Neighbour Policy
+## Good Neighbor Policy
 
 NetLogger is a donation-funded service on one server, and it limits how often each call may be made. We keep to those limits:
 
