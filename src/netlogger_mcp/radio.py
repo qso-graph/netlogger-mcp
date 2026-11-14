@@ -5,7 +5,7 @@ NetLogger's Band and Frequency are whatever the logger typed: "40m", "40M",
 values are always returned as typed. These helpers add read values only when
 the text can be read reliably, and leave them out otherwise.
 
-Band limits are ADIF's (adif_band.json: the ADIF 3.1.7 Band enumeration,
+Band limits are ADIF's (adif_band.json: the ADIF 3.1.8 Band enumeration,
 unchanged), never a table of our own.
 """
 

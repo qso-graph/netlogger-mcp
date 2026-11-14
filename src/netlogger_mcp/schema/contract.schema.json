@@ -148,7 +148,7 @@
             "1mm",
             "submm"
           ],
-          "description": "ADIF 3.1.7 band: from frequency_mhz when readable, else the logger's band if it is an ADIF band name; absent otherwise (e.g. GMRS)"
+          "description": "ADIF 3.1.8 band: from frequency_mhz when readable, else the logger's band if it is an ADIF band name; absent otherwise (e.g. GMRS)"
         },
         "tone_hz": {
           "type": "number",
