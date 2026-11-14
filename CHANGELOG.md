@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `adif_band.json` is labelled ADIF 3.1.8's Band enumeration (released 2026-10-12). Its 33 bands
+  are the same as 3.1.7's, so the bands and their limits do not change.
+
 ### Security
 
 - Locked dependencies: dnspython 2.9.2 (CVE-2026-128089) and

@@ -62,7 +62,7 @@ NetLogger is a donation-funded service on one server, and it limits how often ea
 
 ## Bands and Frequencies
 
-NetLogger's band and frequency are whatever the logger typed (`40M`, `75M`, `DMR`, `7033`, `3918 KHz`, `147.030 91.5`, `TG 3141`). They're returned as typed, and beside them, only when the text can be read reliably: `frequency_mhz`, `band_adif` (the ADIF band, from ADIF 3.1.7's Band enumeration), `tone_hz` and `talkgroup`. A frequency outside the amateur bands (for example, GMRS) gets no `band_adif`.
+NetLogger's band and frequency are whatever the logger typed (`40M`, `75M`, `DMR`, `7033`, `3918 KHz`, `147.030 91.5`, `TG 3141`). They're returned as typed, and beside them, only when the text can be read reliably: `frequency_mhz`, `band_adif` (the ADIF band, from ADIF 3.1.8's Band enumeration), `tone_hz` and `talkgroup`. A frequency outside the amateur bands (for example, GMRS) gets no `band_adif`.
 
 ## Privacy
 
@@ -212,4 +212,4 @@ uv run pytest
 
 ## License
 
-GPL-3.0-or-later. `adif_band.json` is the ADIF 3.1.7 Band enumeration, the work of the ADIF Developers Group ([adif.org.uk](https://adif.org.uk/)), included unchanged.
+GPL-3.0-or-later. `adif_band.json` is the ADIF 3.1.8 Band enumeration, the work of the ADIF Developers Group ([adif.org.uk](https://adif.org.uk/)), included unchanged.
